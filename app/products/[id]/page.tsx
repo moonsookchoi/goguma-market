@@ -13,6 +13,7 @@ import { BumpButton, ViewTracker, WishButton } from "@/components/ProductActions
 import { btn } from "@/components/ui";
 import { changeStatus } from "../actions";
 import { startChat } from "@/app/chats/actions";
+import ChatStartButton from "@/components/ChatStartButton";
 
 // 브라우저 탭 제목을 판매글 제목으로
 export async function generateMetadata({ params }: PageProps<"/products/[id]">): Promise<Metadata> {
@@ -173,10 +174,7 @@ async function ProductDetail({ params }: { params: PageProps<"/products/[id]">["
               <div className="flex gap-2">
                 <WishButton id={product.id} initialWished={Boolean(wishRes.data)} count={product.wish_count} loggedIn={Boolean(user)} />
                 <form action={startChat.bind(null, product.id)} className="flex-1">
-                  <button className={`${btn.primary} h-12 w-full`} disabled={product.status === "sold"}>
-                    <MessageCircle className="h-5 w-5" />
-                    {product.status === "sold" ? "거래가 완료된 물건이에요" : "채팅으로 거래하기"}
-                  </button>
+                  <ChatStartButton sold={product.status === "sold"} />
                 </form>
               </div>
             )}
