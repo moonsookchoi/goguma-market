@@ -44,3 +44,6 @@ next-env.d.ts
 
 # 내 컴퓨터 전용 Claude 설정
 .claude/
+
+.vercel
+.env*
