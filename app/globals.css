@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+/* 고구마마켓 색상 — 껍질(보라) + 속살(주황/노랑) */
+@theme {
+  --color-cream: #fff8f1;
+  --color-ink: #24112f;
+  --color-muted: #7a6a80;
+  --color-line: #efe3d9;
+  --color-goguma-50: #f6effb;
+  --color-goguma-100: #ecdcf6;
+  --color-goguma-200: #d7b8ec;
+  --color-goguma-500: #8a4fc0;
+  --color-goguma-600: #6f35a5;
+  --color-goguma-700: #5a2886;
+  --color-goguma-900: #2e1247;
+  --color-flesh-100: #fff0dc;
+  --color-flesh-300: #ffc98a;
+  --color-flesh-400: #ffa654;
+  --color-flesh-500: #ff8a2b;
+  --color-flesh-600: #f06d0f;
+
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-float-slow: float 8s ease-in-out infinite;
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  word-break: keep-all;
+}
+
+::selection {
+  background: var(--color-flesh-300);
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
