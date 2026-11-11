@@ -26,13 +26,19 @@ export default async function Header() {
         </Link>
 
         <nav className="hidden items-center gap-7 text-[15px] font-medium text-muted md:flex">
-          <Link href="/#hot" className="transition hover:text-ink">인기매물</Link>
+          <Link href="/products" className="transition hover:text-ink">중고거래</Link>
           <Link href="/#category" className="transition hover:text-ink">카테고리</Link>
           <Link href="/#how" className="transition hover:text-ink">이용방법</Link>
         </nav>
 
         {user ? (
           <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/products/new"
+              className="rounded-full bg-flesh-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-flesh-500/25 transition hover:-translate-y-0.5 hover:bg-flesh-600"
+            >
+              + 글쓰기
+            </Link>
             <div className="hidden items-center gap-2 rounded-full bg-white py-1 pl-1 pr-3 shadow-sm ring-1 ring-line sm:flex">
               <span className="grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-goguma-500 to-flesh-500 text-xs font-bold text-white">
                 {user.nickname.slice(0, 1)}

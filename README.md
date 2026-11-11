@@ -19,7 +19,7 @@ npm run dev
 
 | 파일 | 하는 일 |
 |---|---|
-| `app/page.tsx` | 홈 화면 (매물은 아직 예시 데이터) |
+| `app/page.tsx` | 홈 화면 (위쪽 떠다니는 카드는 장식용 예시, 아래 '방금 올라온 매물'은 DB) |
 | `app/signup/` | 회원가입 페이지 + 폼 |
 | `app/login/` | 로그인 페이지 + 폼 |
 | `app/auth/actions.ts` | **서버 액션**: login / signup / logout |
@@ -35,6 +35,31 @@ npm run dev
 3. 로그인 정보는 **쿠키**에 저장 → 서버 컴포넌트에서 `getClaims()` 로 확인
 4. 로그아웃 → `signOut()` 으로 쿠키 삭제
 
+## 2단계: 판매글 CRUD (사진 없이) ✅
+
+CRUD = **C**reate(등록) · **R**ead(조회) · **U**pdate(수정) · **D**elete(삭제)
+
+| 주소 | 화면 | CRUD |
+|---|---|---|
+| `/products` | 판매글 목록 + 카테고리 필터 | R |
+| `/products/new` | 판매글 쓰기 (로그인 필요) | C |
+| `/products/[id]` | 판매글 상세, 내 글이면 상태 변경·수정·삭제 버튼 | R · U · D |
+| `/products/[id]/edit` | 판매글 수정 (내 글만) | U |
+
+| 파일 | 하는 일 |
+|---|---|
+| `app/products/actions.ts` | **서버 액션**: createProduct / updateProduct / changeStatus / deleteProduct |
+| `app/products/data.ts` | 판매글 읽어 오기 (한 개 / 최신 목록) |
+| `lib/products.ts` | 카테고리·판매상태 목록, 가격·시간 표시 도우미 |
+| `components/ProductForm.tsx` | 쓰기·수정 공용 폼 |
+| `components/ProductCard.tsx` | 목록 카드, 카테고리 이모지 썸네일 |
+| `supabase/02_goguma_products.sql` | 판매글 테이블 + RLS 보안 규칙 |
+
+### 보안은 두 겹
+1. **화면/서버 액션**: 로그인 안 하면 로그인 페이지로, 남의 글은 수정 화면이 404
+2. **DB의 RLS 정책**: 누구나 읽기만 가능, 쓰기·수정·삭제는 `seller_id = 내 id` 일 때만
+   → 화면 코드를 실수로 잘못 짜도 DB가 남의 글 수정을 막아 줘요.
+
 ## 데이터베이스
 - 가계부와 **같은 Supabase 프로젝트**를 써요. 섞이지 않게 고구마마켓 테이블은 `goguma_` 로 시작해요.
 - 회원(`auth.users`)은 두 앱이 함께 쓰는 공간이에요.
@@ -48,7 +73,8 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 배포 주소가 생기면 Supabase 대시보드 → Authentication → URL Configuration 의 **Site URL / Redirect URLs** 에도 추가해야 해요.
 
 ## 다음 단계 아이디어
-- [ ] 2단계: 상품 등록 (`goguma_products` 테이블 + 이미지 업로드 Storage)
-- [ ] 3단계: 상품 목록 · 상세 · 검색
-- [ ] 4단계: 찜하기, 마이페이지(프로필 수정)
-- [ ] 5단계: 채팅
+- [x] 2단계: 판매글 CRUD (사진 없이)
+- [ ] 3단계: 사진 업로드 (Supabase Storage)
+- [ ] 4단계: 검색
+- [ ] 5단계: 찜하기, 마이페이지(프로필 수정)
+- [ ] 6단계: 채팅

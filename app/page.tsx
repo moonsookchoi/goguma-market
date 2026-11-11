@@ -2,8 +2,10 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { GogumaIcon } from "@/components/Logo";
 import { getCurrentUser } from "@/lib/supabase/server";
+import { getLatestProducts } from "@/app/products/data";
+import ProductCard, { EmptyProducts, ProductGridSkeleton } from "@/components/ProductCard";
 
-// 아직 상품 테이블이 없어서 화면용 예시 데이터를 써요 (다음 단계에서 DB로 바꿀 예정)
+// 첫 화면에 떠다니는 장식 카드용 예시 데이터 (실제 판매글은 아래 '방금 올라온 매물'에서 DB로 보여 줘요)
 const SAMPLE_ITEMS = [
   { emoji: "🎧", title: "에어팟 프로 2세대", price: 159000, place: "망원동", ago: "3분 전", likes: 12, tone: "from-goguma-100 to-goguma-50" },
   { emoji: "🚲", title: "미니벨로 자전거", price: 85000, place: "연남동", ago: "12분 전", likes: 8, tone: "from-flesh-100 to-[#fff7ec]" },
@@ -139,39 +141,22 @@ export default function Home({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      {/* ───────── 인기 매물 ───────── */}
+      {/* ───────── 최신 판매글 (DB에서 가져옴) ───────── */}
       <section id="hot" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="font-semibold text-flesh-600">🔥 HOT</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">요즘 동네에서 인기 있는 매물</h2>
+            <p className="font-semibold text-flesh-600">🔥 NEW</p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">방금 올라온 따끈한 매물</h2>
           </div>
-          <span className="rounded-full bg-goguma-50 px-3 py-1 text-xs font-semibold text-goguma-700">
-            미리보기 · 예시 매물이에요
-          </span>
+          <Link href="/products" className="font-semibold text-goguma-700 hover:underline">
+            전체 보기 →
+          </Link>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-4">
-          {SAMPLE_ITEMS.map((item) => (
-            <article key={item.title} className="group cursor-pointer">
-              <div
-                className={`relative grid aspect-square place-items-center overflow-hidden rounded-3xl bg-gradient-to-br ${item.tone} ring-1 ring-line transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-2xl group-hover:shadow-goguma-900/10`}
-              >
-                <span className="text-6xl transition duration-500 group-hover:rotate-6 group-hover:scale-125 sm:text-7xl">
-                  {item.emoji}
-                </span>
-                <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-white/80 text-sm backdrop-blur transition group-hover:scale-110">
-                  🤍
-                </span>
-              </div>
-              <h3 className="mt-3 line-clamp-1 font-semibold">{item.title}</h3>
-              <p className="mt-0.5 text-sm text-muted">{item.place} · {item.ago}</p>
-              <div className="mt-1 flex items-center justify-between">
-                <p className="text-lg font-extrabold">{won(item.price)}</p>
-                <p className="text-xs text-muted">♡ {item.likes}</p>
-              </div>
-            </article>
-          ))}
+        <div className="mt-10">
+          <Suspense fallback={<ProductGridSkeleton />}>
+            <LatestProducts />
+          </Suspense>
         </div>
       </section>
 
@@ -205,6 +190,19 @@ export default function Home({ searchParams }: PageProps<"/">) {
       <footer className="border-t border-line py-10 text-center text-sm text-muted">
         <p>© 2026 고구마마켓 · 개발 공부용 프로젝트</p>
       </footer>
+    </div>
+  );
+}
+
+// R: 최신 판매글 8개
+async function LatestProducts() {
+  const products = await getLatestProducts(8);
+  if (products.length === 0) return <EmptyProducts />;
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-4">
+      {products.map((p) => (
+        <ProductCard key={p.id} product={p} />
+      ))}
     </div>
   );
 }
