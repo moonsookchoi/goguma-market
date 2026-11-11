@@ -59,7 +59,7 @@ export type Product = {
 
 // 목록·상세에서 쓰는 select 문 (판매자 닉네임·매너 온도까지 한 번에 가져오기)
 export const PRODUCT_SELECT =
-  "id, seller_id, title, description, price, category, region, status, created_at, updated_at, images, view_count, wish_count, bumped_at, hidden, seller:goguma_profiles(nickname, region, manner_temp, region_verified_at)";
+  "id, seller_id, title, description, price, category, region, status, created_at, updated_at, images, view_count, wish_count, bumped_at, hidden, seller:goguma_profiles!goguma_products_seller_id_fkey(nickname, region, manner_temp, region_verified_at)";
 
 // 검색어를 Supabase 필터에 안전하게 넣기 (쉼표·괄호 같은 특수문자 제거)
 export function cleanQuery(q: unknown) {
