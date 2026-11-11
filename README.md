@@ -52,13 +52,34 @@ CRUD = **C**reate(등록) · **R**ead(조회) · **U**pdate(수정) · **D**elet
 | `app/products/data.ts` | 판매글 읽어 오기 (한 개 / 최신 목록) |
 | `lib/products.ts` | 카테고리·판매상태 목록, 가격·시간 표시 도우미 |
 | `components/ProductForm.tsx` | 쓰기·수정 공용 폼 |
-| `components/ProductCard.tsx` | 목록 카드, 카테고리 이모지 썸네일 |
+| `components/ProductCard.tsx` | 목록 카드 (대표 사진, 사진 없으면 카테고리 아이콘) |
 | `supabase/02_goguma_products.sql` | 판매글 테이블 + RLS 보안 규칙 |
 
 ### 보안은 두 겹
 1. **화면/서버 액션**: 로그인 안 하면 로그인 페이지로, 남의 글은 수정 화면이 404
 2. **DB의 RLS 정책**: 누구나 읽기만 가능, 쓰기·수정·삭제는 `seller_id = 내 id` 일 때만
    → 화면 코드를 실수로 잘못 짜도 DB가 남의 글 수정을 막아 줘요.
+
+## 3단계: 사진 여러 장 업로드 ✅
+
+### 흐름
+1. 사진 고르기 (여러 장 / 끌어다 놓기, 최대 10장)
+2. **브라우저에서** 긴 변 1600px로 줄이고 webp로 변환 → 용량이 확 줄어요
+3. **브라우저가 Supabase Storage에 바로 업로드** (서버를 거치지 않아서 빠르고, 서버 용량 제한에도 안 걸려요)
+4. 올라간 파일 경로(`내아이디/랜덤이름.webp`)만 폼에 담아 서버 액션으로 보내고, DB `images` 칸에 순서대로 저장
+5. 첫 번째 사진 = 대표 사진 (목록 카드에 보임), 상세 화면은 갤러리로 넘겨 보기
+
+| 파일 | 하는 일 |
+|---|---|
+| `components/ImageUploader.tsx` | 사진 고르기·줄이기·업로드·순서 바꾸기·삭제 |
+| `components/ProductGallery.tsx` | 상세 화면 사진 갤러리 |
+| `lib/supabase/client.ts` | 브라우저용 Supabase 클라이언트 (업로드할 때 사용) |
+| `supabase/04_goguma_product_images.sql` | `images` 칸 + Storage 버킷 + 보안 규칙 |
+
+### 사진 보안
+- 버킷 `goguma_product_images`는 **공개 버킷**: 사진 주소로 누구나 볼 수 있어요.
+- 올리기·지우기는 **내 아이디 폴더 안에서만** 가능 (Storage RLS). 서버 액션도 경로가 `내아이디/...` 인지 한 번 더 검사해요.
+- 사진을 빼고 저장하거나 글을 지우면 Storage의 파일도 같이 지워요.
 
 ## 데이터베이스
 - 가계부와 **같은 Supabase 프로젝트**를 써요. 섞이지 않게 고구마마켓 테이블은 `goguma_` 로 시작해요.
@@ -74,7 +95,7 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
 
 ## 다음 단계 아이디어
 - [x] 2단계: 판매글 CRUD (사진 없이)
-- [ ] 3단계: 사진 업로드 (Supabase Storage)
+- [x] 3단계: 사진 여러 장 업로드 (Supabase Storage)
 - [ ] 4단계: 검색
 - [ ] 5단계: 찜하기, 마이페이지(프로필 수정)
 - [ ] 6단계: 채팅

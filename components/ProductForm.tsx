@@ -3,14 +3,23 @@
 // 판매글 쓰기 · 수정 공용 폼
 import { useActionState, useState } from "react";
 import Link from "next/link";
-import { ImageOff } from "lucide-react";
 import type { ProductFormState } from "@/app/products/actions";
+import ImageUploader from "@/components/ImageUploader";
 import { CATEGORIES } from "@/lib/products";
 import { btn, ErrorBox, inputClass, Spinner } from "@/components/ui";
 
 type Props = {
   action: (prev: ProductFormState, formData: FormData) => Promise<ProductFormState>;
-  initial: { title: string; description: string; category: string; region: string; price: string; isFree: boolean };
+  initial: {
+    title: string;
+    description: string;
+    category: string;
+    region: string;
+    price: string;
+    isFree: boolean;
+    images: string[];
+  };
+  userId: string; // 사진을 내 아이디 폴더에 올리기 위해 필요
   submitLabel: string;
   cancelHref: string;
 };
@@ -28,7 +37,7 @@ function Section({ title, desc, children }: { title: string; desc: string; child
   );
 }
 
-export default function ProductForm({ action, initial, submitLabel, cancelHref }: Props) {
+export default function ProductForm({ action, initial, userId, submitLabel, cancelHref }: Props) {
   const [state, formAction, pending] = useActionState(action, {});
   const f = state.fields; // 오류가 나면 입력했던 값을 다시 채워 넣기
   const [isFree, setIsFree] = useState(f ? f.isFree === "on" : initial.isFree);
@@ -36,11 +45,9 @@ export default function ProductForm({ action, initial, submitLabel, cancelHref }
 
   return (
     <form action={formAction}>
-      {/* 사진은 다음 단계에서 추가 예정 */}
-      <div className="flex items-start gap-3 rounded-lg border border-line bg-surface px-4 py-3 text-sm text-body">
-        <ImageOff className="mt-0.5 h-4 w-4 shrink-0 text-muted" />
-        사진 등록은 다음 업데이트에서 제공됩니다. 지금은 카테고리 아이콘이 대표 이미지로 표시돼요.
-      </div>
+      <Section title="상품 사진" desc="여러 장을 올릴 수 있어요. 밝고 선명한 사진일수록 거래가 빨라져요.">
+        <ImageUploader userId={userId} initial={initial.images} />
+      </Section>
 
       <Section title="기본 정보" desc="이웃이 한눈에 알아볼 수 있는 제목을 적어 주세요.">
         <label className="block">

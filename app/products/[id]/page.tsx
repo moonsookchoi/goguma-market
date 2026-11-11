@@ -7,6 +7,7 @@ import { getProduct } from "@/app/products/data";
 import { STATUSES, getCategory, timeAgo, won, type Product } from "@/lib/products";
 import { ProductThumb, StatusBadge } from "@/components/ProductCard";
 import DeleteProductButton from "@/components/DeleteProductButton";
+import ProductGallery from "@/components/ProductGallery";
 import { btn } from "@/components/ui";
 import { changeStatus } from "../actions";
 
@@ -47,11 +48,15 @@ async function ProductDetail({ params }: { params: PageProps<"/products/[id]">["
       </nav>
 
       <article className="animate-rise mt-6 grid gap-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12">
-        <ProductThumb
-          category={product.category}
-          size="lg"
-          className={`aspect-square rounded-2xl border border-line ${product.status === "sold" ? "opacity-60 grayscale" : ""}`}
-        />
+        {product.images.length > 0 ? (
+          <ProductGallery images={product.images} title={product.title} dim={product.status === "sold"} />
+        ) : (
+          <ProductThumb
+            category={product.category}
+            size="lg"
+            className={`aspect-square rounded-2xl border border-line ${product.status === "sold" ? "opacity-60 grayscale" : ""}`}
+          />
+        )}
 
         <div className="flex flex-col">
           <div className="flex flex-wrap items-center gap-2">

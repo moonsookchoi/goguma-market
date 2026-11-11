@@ -49,12 +49,22 @@ export type Product = {
   status: ProductStatus;
   created_at: string;
   updated_at: string;
+  images: string[]; // Storage 안의 사진 경로들 (첫 번째 = 대표 사진)
   seller: { nickname: string; region: string } | null;
 };
 
 // 목록·상세에서 쓰는 select 문 (판매자 닉네임까지 한 번에 가져오기)
 export const PRODUCT_SELECT =
-  "id, seller_id, title, description, price, category, region, status, created_at, updated_at, seller:goguma_profiles(nickname, region)";
+  "id, seller_id, title, description, price, category, region, status, created_at, updated_at, images, seller:goguma_profiles(nickname, region)";
+
+// ── 사진 ──
+export const IMAGE_BUCKET = "goguma_product_images";
+export const MAX_IMAGES = 10;
+
+// Storage 경로 → 누구나 볼 수 있는 공개 주소
+export function imageUrl(path: string) {
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${IMAGE_BUCKET}/${path}`;
+}
 
 export const won = (n: number) => (n === 0 ? "나눔" : `${n.toLocaleString("ko-KR")}원`);
 

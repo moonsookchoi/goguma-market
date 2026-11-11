@@ -35,7 +35,8 @@ async function NewProductForm() {
     <ProductForm
       action={createProduct}
       // 거래 동네는 내 프로필의 동네로 미리 채워 둬요
-      initial={{ title: "", description: "", category: "", region: user.region, price: "", isFree: false }}
+      initial={{ title: "", description: "", category: "", region: user.region, price: "", isFree: false, images: [] }}
+      userId={user.id}
       submitLabel="판매글 등록하기"
       cancelHref="/products"
     />

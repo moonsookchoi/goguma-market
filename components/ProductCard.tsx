@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
-import { getCategory, STATUSES, timeAgo, won, type Product } from "@/lib/products";
+import Image from "next/image";
+import { Images, MapPin } from "lucide-react";
+import { getCategory, imageUrl, STATUSES, timeAgo, won, type Product } from "@/lib/products";
 import { btn } from "@/components/ui";
 
 // 사진이 없는 동안: 옅은 회색 타일 + 카테고리 선 아이콘을 대표 이미지로 보여 줘요
@@ -41,8 +42,26 @@ export default function ProductCard({ product }: { product: Product }) {
       href={`/products/${product.id}`}
       className="group flex flex-col overflow-hidden rounded-xl border border-line bg-white transition hover:border-brand-200 hover:shadow-[0_12px_32px_-12px_rgb(42_22_67/0.25)]"
     >
-      <div className="relative">
-        <ProductThumb category={product.category} className={`aspect-[4/3] ${sold ? "opacity-60 grayscale" : ""}`} />
+      <div className={`relative ${sold ? "opacity-60 grayscale" : ""}`}>
+        {product.images.length > 0 ? (
+          // 대표 사진 (첫 번째 사진)
+          <div className="relative aspect-[4/3] overflow-hidden bg-surface">
+            <Image
+              src={imageUrl(product.images[0])}
+              alt={product.title}
+              fill
+              sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+              className="object-cover transition duration-500 group-hover:scale-105"
+            />
+          </div>
+        ) : (
+          <ProductThumb category={product.category} className="aspect-[4/3]" />
+        )}
+        {product.images.length > 1 && (
+          <span className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1 rounded-md bg-ink/70 px-1.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+            <Images className="h-3 w-3" /> {product.images.length}
+          </span>
+        )}
         {product.status !== "selling" && (
           <span className="absolute left-3 top-3">
             <StatusBadge status={product.status} />

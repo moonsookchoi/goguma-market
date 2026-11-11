@@ -47,7 +47,9 @@ async function EditForm({ params }: { params: PageProps<"/products/[id]/edit">["
         region: product.region,
         price: product.price > 0 ? String(product.price) : "",
         isFree: product.price === 0,
+        images: product.images,
       }}
+      userId={user.id}
       submitLabel="수정 완료"
       cancelHref={`/products/${product.id}`}
     />
