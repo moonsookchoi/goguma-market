@@ -20,12 +20,12 @@ export default function ProductsPage({ searchParams }: PageProps<"/products">) {
         title="중고거래"
         desc="우리 동네 이웃들이 등록한 판매글을 확인하세요."
         action={
-          <Link href="/products/new" className={btn.primary}>
+          <Link href="/products/new" className={`${btn.primary} max-sm:!hidden`}>
             <Plus className="h-4 w-4" strokeWidth={2.5} /> 판매글 쓰기
           </Link>
         }
       />
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
         <Suspense fallback={<ListFallback />}>
           <ProductList searchParams={searchParams} />
         </Suspense>
@@ -98,7 +98,7 @@ async function ProductList({ searchParams }: { searchParams: PageProps<"/product
   return (
     <>
       {/* 탭: 전체 매물 / 내 근처 */}
-      <div className="mb-8 flex gap-1 border-b border-line">
+      <div className="mb-5 flex gap-1 border-b border-line">
         <TabLink href={href({ near: false })} active={!nearMode}>
           전체 매물
         </TabLink>

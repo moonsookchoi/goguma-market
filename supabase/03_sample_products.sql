@@ -1,6 +1,10 @@
 -- 고구마마켓 샘플 판매글 10개 (화면 확인용)
 -- 판매자는 테스트 계정(닉네임 '테스트고구마')이에요. 로컬과 배포 사이트가 같은 DB라 양쪽 모두에 보여요.
 -- 지울 때: delete from public.goguma_products where description like '%[샘플]%';
+--          (사진 파일은 Storage 대시보드 > goguma_product_images 에서 지우거나, 사이트에서 글을 삭제하면 같이 지워져요)
+--
+-- 샘플 사진: supabase/sample-images/*.svg 는 직접 그린 물건 일러스트예요.
+--   브라우저에서 webp(1200px)로 바꿔 테스트 계정 폴더에 올리고, 각 판매글 images 칸에 경로를 넣었어요.
 
 insert into public.goguma_products (seller_id, title, description, price, category, region, status, created_at)
 select p.id, s.title, s.description || E'\n\n[샘플] 화면 확인용 예시 판매글입니다.', s.price, s.category, s.region, s.status,

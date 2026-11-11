@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <rect width="800" height="800" fill="#e9ecf1"/>
+  <ellipse cx="400" cy="700" rx="230" ry="24" fill="#000" opacity=".12"/>
+  <path d="M400 90c-30 0-50 10-62 26l-40-10c-60 20-120 70-140 160l-40 300c-4 30 14 50 40 52l40 2 10-200 10 340h364l10-340 10 200 40-2c26-2 44-22 40-52l-40-300c-20-90-80-140-140-160l-40 10c-12-16-32-26-62-26z" fill="#222327"/>
+  <path d="M338 116c14 22 36 34 62 34s48-12 62-34" fill="none" stroke="#3a3c42" stroke-width="10"/>
+  <g stroke="#3b3d44" stroke-width="7" fill="none">
+    <path d="M250 260h300M240 330h320M232 400h336M226 470h348M222 540h356M220 610h360"/>
+    <path d="M190 330h-12M175 420h-14M165 510h-14M600 330h12M615 420h14M627 510h14"/>
+  </g>
+  <rect x="396" y="150" width="8" height="520" fill="#45474e"/>
+  <rect x="380" y="150" width="40" height="34" rx="6" fill="#2f3036"/>
+  <rect x="300" y="420" width="60" height="10" rx="4" fill="#45474e"/>
+  <rect x="440" y="420" width="60" height="10" rx="4" fill="#45474e"/>
+  <rect x="455" y="200" width="50" height="16" rx="3" fill="#e6e6e6" opacity=".85"/>
+</svg>

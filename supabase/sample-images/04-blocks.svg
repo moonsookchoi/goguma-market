@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800">
+  <rect width="800" height="800" fill="#fff6e3"/>
+  <ellipse cx="400" cy="650" rx="290" ry="28" fill="#000" opacity=".1"/>
+  <g font-family="Arial, sans-serif" font-weight="700" font-size="96" fill="#fff" text-anchor="middle">
+    <rect x="150" y="480" width="160" height="160" rx="14" fill="#e98b5b"/><rect x="150" y="480" width="160" height="22" rx="10" fill="#f2a87f"/><text x="230" y="600">A</text>
+    <rect x="320" y="480" width="160" height="160" rx="14" fill="#5ab0a0"/><rect x="320" y="480" width="160" height="22" rx="10" fill="#7fc8ba"/><text x="400" y="600">B</text>
+    <rect x="490" y="480" width="160" height="160" rx="14" fill="#f2c14e"/><rect x="490" y="480" width="160" height="22" rx="10" fill="#f7d67f"/><text x="570" y="600">C</text>
+    <g transform="rotate(-4 315 400)"><rect x="235" y="320" width="160" height="160" rx="14" fill="#7a6cc4"/><rect x="235" y="320" width="160" height="22" rx="10" fill="#9a8edb"/><text x="315" y="440">1</text></g>
+  </g>
+  <path d="M410 480l80-150 80 150z" fill="#e2576b"/><path d="M490 330l80 150h-20l-60-112z" fill="#f07a8b"/>
+  <rect x="270" y="220" width="100" height="100" rx="50" fill="#4f9ad8"/><ellipse cx="320" cy="236" rx="40" ry="12" fill="#7cb6e6"/>
+</svg>

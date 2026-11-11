@@ -72,7 +72,7 @@ export function PageHeader({
 }) {
   return (
     <div className="bg-grid border-b border-line bg-surface">
-      <div className={`mx-auto ${width} px-4 py-10 sm:px-6 sm:py-12`}>
+      <div className={`mx-auto ${width} px-4 py-6 sm:px-6 sm:py-8`}>
         <nav aria-label="현재 위치" className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
           <Link href="/" className="hover:text-ink">
             홈
@@ -90,10 +90,10 @@ export function PageHeader({
             </span>
           ))}
         </nav>
-        <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">{title}</h1>
-            {desc && <p className="mt-2 text-muted">{desc}</p>}
+            <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
+            {desc && <p className="mt-1 text-sm text-muted">{desc}</p>}
           </div>
           {action}
         </div>
