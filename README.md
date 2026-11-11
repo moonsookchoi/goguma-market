@@ -2,6 +2,10 @@
 
 우리 동네 중고거래 사이트 (개발 공부용) — **Next.js 16 + Supabase**
 
+### 👉 [고구마마켓 바로 열기](https://goguma-market-ebon.vercel.app)
+
+Vercel에 GitHub 저장소가 연결돼 있어서, `main`에 푸시하면 1~2분 뒤 사이트가 자동으로 바뀌어요.
+
 ## 실행하기
 
 ```bash
