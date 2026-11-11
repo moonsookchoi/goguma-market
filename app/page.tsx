@@ -1,37 +1,47 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { GogumaIcon } from "@/components/Logo";
+import {
+  ArrowRight, BadgePercent, CircleCheck, Clock, Lock, MapPin, MessageCircle,
+  PenLine, Search, ShieldCheck, Store, Users, Zap,
+} from "lucide-react";
 import { getCurrentUser } from "@/lib/supabase/server";
 import { getLatestProducts } from "@/app/products/data";
-import ProductCard, { EmptyProducts, ProductGridSkeleton } from "@/components/ProductCard";
+import { CATEGORIES } from "@/lib/products";
+import ProductCard, { EmptyProducts, ProductGrid, ProductGridSkeleton } from "@/components/ProductCard";
+import { btn, Eyebrow, SectionHeader } from "@/components/ui";
 
-// 첫 화면에 떠다니는 장식 카드용 예시 데이터 (실제 판매글은 아래 '방금 올라온 매물'에서 DB로 보여 줘요)
-const SAMPLE_ITEMS = [
-  { emoji: "🎧", title: "에어팟 프로 2세대", price: 159000, place: "망원동", ago: "3분 전", likes: 12, tone: "from-goguma-100 to-goguma-50" },
-  { emoji: "🚲", title: "미니벨로 자전거", price: 85000, place: "연남동", ago: "12분 전", likes: 8, tone: "from-flesh-100 to-[#fff7ec]" },
-  { emoji: "🪴", title: "몬스테라 큰 화분", price: 20000, place: "성수동", ago: "25분 전", likes: 21, tone: "from-[#e5f6ea] to-[#f4fbf6]" },
-  { emoji: "📷", title: "필름카메라 올림푸스", price: 120000, place: "합정동", ago: "1시간 전", likes: 34, tone: "from-[#e6eefc] to-[#f4f7fe]" },
-  { emoji: "🪑", title: "원목 의자 2개", price: 30000, place: "서교동", ago: "2시간 전", likes: 5, tone: "from-flesh-100 to-[#fffaf3]" },
-  { emoji: "🎮", title: "닌텐도 스위치 OLED", price: 280000, place: "상수동", ago: "3시간 전", likes: 47, tone: "from-[#fde6ea] to-[#fff4f6]" },
-  { emoji: "📚", title: "개발 서적 묶음", price: 15000, place: "공덕동", ago: "5시간 전", likes: 9, tone: "from-goguma-100 to-goguma-50" },
-  { emoji: "🧸", title: "아기 애착인형", price: 0, place: "도화동", ago: "어제", likes: 16, tone: "from-[#fff3c9] to-[#fffbea]" },
+// 첫 화면 오른쪽 '서비스 화면' 그림에만 쓰는 예시 데이터 (실제 판매글은 아래 '최신 매물'에서 DB로 보여 줘요)
+const MOCK_ROWS = [
+  { cat: 0, title: "아이폰 15 Pro 256GB", price: "890,000원", meta: "망원동 · 3분 전", status: "판매중" },
+  { cat: 1, title: "원목 4인 식탁 세트", price: "120,000원", meta: "연남동 · 12분 전", status: "예약중" },
+  { cat: 6, title: "개발 서적 5권 묶음", price: "나눔", meta: "합정동 · 25분 전", status: "판매중" },
 ];
 
-const CATEGORIES = [
-  ["📱", "디지털기기"], ["🛋️", "가구/인테리어"], ["👕", "의류"], ["👶", "유아동"],
-  ["🍳", "생활/주방"], ["⚽", "스포츠/레저"], ["📚", "도서"], ["🎨", "취미/게임"],
-  ["💄", "뷰티/미용"], ["🐶", "반려동물"], ["🎟️", "티켓/교환권"], ["🌱", "식물"],
+const FEATURES = [
+  { icon: BadgePercent, title: "수수료 0원", desc: "판매 금액 그대로 내 것. 중개 수수료 없이 이웃과 직접 거래합니다." },
+  { icon: MapPin, title: "동네 기반 거래", desc: "내가 사는 동네를 중심으로 가까운 이웃의 매물을 먼저 보여 드립니다." },
+  { icon: Zap, title: "1분 판매글 등록", desc: "제목, 카테고리, 가격만 입력하면 바로 등록. 상태 변경도 클릭 한 번이면 끝." },
+];
+
+const VALUES = [
+  { value: "0원", label: "거래 수수료" },
+  { value: "1분", label: "판매글 등록 시간" },
+  { value: `${CATEGORIES.length}개`, label: "상품 카테고리" },
+  { value: "24시간", label: "언제든 등록·거래" },
+];
+
+const TRUST = [
+  { icon: Lock, title: "데이터 보안 정책", desc: "판매글 수정·삭제는 데이터베이스 단계에서 작성자 본인만 가능하도록 보호됩니다." },
+  { icon: Users, title: "회원제 운영", desc: "로그인한 회원만 판매글을 등록할 수 있어 책임 있는 거래 문화를 만듭니다." },
+  { icon: CircleCheck, title: "투명한 거래 상태", desc: "판매중 · 예약중 · 거래완료 상태를 실시간으로 표시해 헛걸음을 줄입니다." },
+  { icon: MessageCircle, title: "채팅 기능 준비 중", desc: "이웃과 안전하게 대화할 수 있는 채팅 기능을 다음 단계에서 선보입니다." },
 ];
 
 const STEPS = [
-  ["📸", "사진 찍고 올리기", "물건 사진과 가격만 적으면 1분이면 끝나요."],
-  ["💬", "이웃과 채팅하기", "가까운 이웃과 바로 대화하고 약속을 잡아요."],
-  ["🤝", "동네에서 만나기", "집 근처에서 만나 직접 보고 거래해요."],
+  { icon: Users, title: "회원가입", desc: "이메일과 닉네임, 우리 동네만 입력하면 가입 완료." },
+  { icon: PenLine, title: "판매글 등록", desc: "물건 정보와 가격을 적어 1분 만에 판매글을 올립니다." },
+  { icon: Store, title: "동네에서 거래", desc: "가까운 이웃과 만나 직접 확인하고 거래를 마칩니다." },
 ];
-
-const won = (n: number) => (n === 0 ? "나눔 🧡" : `${n.toLocaleString("ko-KR")}원`);
-
-type Item = (typeof SAMPLE_ITEMS)[number];
 
 export default function Home({ searchParams }: PageProps<"/">) {
   return (
@@ -41,155 +51,262 @@ export default function Home({ searchParams }: PageProps<"/">) {
       </Suspense>
 
       {/* ───────── HERO ───────── */}
-      <section className="relative">
-        <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -left-32 -top-24 h-[28rem] w-[28rem] rounded-full bg-goguma-200/60 blur-3xl" />
-          <div className="absolute -right-24 top-24 h-[26rem] w-[26rem] rounded-full bg-flesh-300/50 blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-[#ffe7a8]/60 blur-3xl" />
-        </div>
+      <section className="relative border-b border-line">
+        <div aria-hidden className="bg-grid absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]" />
+        <div aria-hidden className="absolute right-0 top-0 -z-10 h-[520px] w-[620px] bg-[radial-gradient(closest-side,rgb(122_79_176/0.14),transparent)]" />
 
-        <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 pb-20 pt-14 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:pt-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pb-28 lg:pt-24">
           <div className="animate-rise min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full border border-goguma-200 bg-white/70 px-3.5 py-1.5 text-sm font-semibold text-goguma-700 backdrop-blur">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-flesh-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-flesh-500" />
-              </span>
-              지금 우리 동네에서 거래 중
-            </span>
-
-            <h1 className="mt-6 text-[2.6rem] font-extrabold leading-[1.15] tracking-tight sm:text-6xl">
-              이웃과 나누는
+            <Eyebrow>LOCAL MARKETPLACE PLATFORM</Eyebrow>
+            <h1 className="mt-6 text-[2.5rem] font-bold leading-[1.15] tracking-tight text-ink sm:text-[3.6rem]">
+              동네 거래의
               <br />
-              <span className="bg-gradient-to-r from-goguma-600 via-[#c0479a] to-flesh-500 bg-clip-text text-transparent">
-                따끈한 중고거래
-              </span>
+              <span className="text-brand-700">새로운 기준</span>, 고구마마켓
             </h1>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">
-              안 쓰는 물건은 이웃에게, 필요한 물건은 가까운 곳에서.
-              <br className="hidden sm:block" /> 갓 구운 고구마처럼 따뜻한 동네 거래를 시작해 보세요.
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
+              가까운 이웃과 믿고 거래하는 동네 중고거래 플랫폼. 수수료 없이, 안전하게,
+              필요한 물건을 가장 가까운 곳에서 찾아보세요.
             </p>
 
-            <form action="/" className="mt-9 flex max-w-lg items-center gap-2 rounded-2xl bg-white p-2 shadow-xl shadow-goguma-900/5 ring-1 ring-line">
-              <span className="pl-3 text-xl" aria-hidden>🔍</span>
+            <form action="/products" className="mt-9 flex max-w-xl items-center gap-2 rounded-xl border border-line bg-white p-1.5 shadow-[0_8px_30px_-12px_rgb(15_13_20/0.15)]">
+              <Search className="ml-3 h-5 w-5 shrink-0 text-muted" />
               <input
                 name="q"
                 aria-label="물건 검색"
-                placeholder="어떤 물건을 찾고 있나요?"
-                className="min-w-0 flex-1 bg-transparent px-2 py-3 text-base outline-none placeholder:text-muted/70"
+                placeholder="어떤 물건을 찾고 계신가요?"
+                className="min-w-0 flex-1 bg-transparent px-2 py-3 text-[15px] text-ink outline-none placeholder:text-muted/80"
               />
-              <button className="rounded-xl bg-flesh-500 px-5 py-3 font-semibold text-white transition hover:bg-flesh-600">
-                검색
-              </button>
+              <button className={`${btn.primary} !py-2.5`}>검색</button>
             </form>
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted">
-              <span>인기 검색어</span>
-              {["아이폰", "캠핑의자", "자전거", "나눔"].map((k) => (
-                <span key={k} className="rounded-full bg-white/70 px-3 py-1 ring-1 ring-line">#{k}</span>
-              ))}
-            </div>
+            <p className="mt-3 text-xs text-muted">※ 검색 기능은 다음 단계에서 제공됩니다. 지금은 전체 판매글로 이동해요.</p>
 
-            <Suspense fallback={<div className="mt-10 h-14" />}>
+            <Suspense fallback={<div className="mt-9 h-12" />}>
               <HeroButtons />
             </Suspense>
           </div>
 
-          {/* 떠다니는 매물 카드 */}
-          <div className="relative mx-auto h-[420px] w-full max-w-md sm:h-[480px]">
-            <div className="absolute inset-6 rounded-[3rem] bg-gradient-to-br from-goguma-600 to-goguma-900 shadow-2xl shadow-goguma-900/30" />
-            <div className="absolute inset-6 overflow-hidden rounded-[3rem]">
-              <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-flesh-400/40 blur-2xl" />
-              <div className="absolute -bottom-16 -left-10 h-56 w-56 rounded-full bg-goguma-500/50 blur-2xl" />
-            </div>
-            <GogumaIcon className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 drop-shadow-2xl sm:h-48 sm:w-48" />
-
-            <div className="absolute left-0 top-4 -rotate-6">
-              <FloatCard item={SAMPLE_ITEMS[0]} className="animate-float" />
-            </div>
-            <div className="absolute right-0 top-28 rotate-[5deg]">
-              <FloatCard item={SAMPLE_ITEMS[3]} className="animate-float-slow [animation-delay:-2s]" />
-            </div>
-            <div className="absolute bottom-6 left-6 rotate-3">
-              <FloatCard item={SAMPLE_ITEMS[7]} className="animate-float-slow [animation-delay:-4s]" />
-            </div>
-
-            <div className="absolute bottom-24 right-0 flex animate-float items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-xl [animation-delay:-1s]">
-              <span className="text-xl">💬</span>
-              <div className="text-xs">
-                <p className="font-bold">아직 구매 가능한가요?</p>
-                <p className="text-muted">방금 · 망원동 이웃</p>
-              </div>
-            </div>
-          </div>
+          <HeroMock />
         </div>
       </section>
 
-      {/* ───────── 카테고리 마키 ───────── */}
-      <section id="category" className="scroll-mt-20 border-y border-line bg-white/60 py-5">
-        <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-          <div className="flex w-max animate-marquee gap-3 hover:[animation-play-state:paused]">
-            {[...CATEGORIES, ...CATEGORIES].map(([icon, name], i) => (
-              <span
-                key={i}
-                className="flex items-center gap-2 whitespace-nowrap rounded-full bg-white px-5 py-2.5 text-[15px] font-semibold shadow-sm ring-1 ring-line"
-              >
-                <span className="text-lg">{icon}</span>
-                {name}
+      {/* ───────── 핵심 수치 ───────── */}
+      <section className="border-b border-line bg-white">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 px-4 sm:px-6 lg:grid-cols-4">
+          {VALUES.map((v, i) => (
+            <div
+              key={v.label}
+              className={`py-10 text-center lg:py-12 ${i % 2 === 1 ? "border-l border-line" : ""} ${i >= 2 ? "border-t border-line lg:border-t-0" : ""} ${i === 2 ? "lg:border-l" : ""}`}
+            >
+              <p className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">{v.value}</p>
+              <p className="mt-2 text-sm text-muted">{v.label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ───────── 서비스 소개 ───────── */}
+      <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+        <SectionHeader
+          eyebrow="WHY GOGUMA"
+          title={<>이웃과 거래하는 가장 쉬운 방법</>}
+          desc="복잡한 절차 없이, 꼭 필요한 기능만 담았습니다. 고구마마켓은 동네 거래의 처음부터 끝까지 함께합니다."
+        />
+        <div className="mt-14 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="group bg-white p-8 transition hover:bg-brand-50/40 lg:p-10">
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 transition group-hover:bg-brand-800 group-hover:text-white">
+                <f.icon className="h-6 w-6" strokeWidth={1.75} />
               </span>
-            ))}
+              <h3 className="mt-6 text-xl font-bold text-ink">{f.title}</h3>
+              <p className="mt-3 leading-relaxed text-muted">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ───────── 최신 매물 (DB) ───────── */}
+      <section className="border-y border-line bg-surface">
+        <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+          <SectionHeader
+            eyebrow="LATEST LISTINGS"
+            title="방금 등록된 우리 동네 매물"
+            action={{ href: "/products", label: "전체 매물 보기" }}
+          />
+          <div className="mt-12">
+            <Suspense fallback={<ProductGridSkeleton />}>
+              <LatestProducts />
+            </Suspense>
           </div>
         </div>
       </section>
 
-      {/* ───────── 최신 판매글 (DB에서 가져옴) ───────── */}
-      <section id="hot" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-semibold text-flesh-600">🔥 NEW</p>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">방금 올라온 따끈한 매물</h2>
-          </div>
-          <Link href="/products" className="font-semibold text-goguma-700 hover:underline">
-            전체 보기 →
+      {/* ───────── 카테고리 ───────── */}
+      <section id="categories" className="mx-auto max-w-7xl scroll-mt-28 px-4 py-24 sm:px-6">
+        <SectionHeader
+          eyebrow="CATEGORIES"
+          title="카테고리별로 찾아보세요"
+          desc="디지털기기부터 식물까지, 생활에 필요한 모든 물건을 카테고리로 나눠 두었습니다."
+        />
+        <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.key}
+              href={`/products?category=${c.key}`}
+              className="group flex flex-col items-center gap-3 rounded-xl border border-line bg-white px-3 py-6 text-center transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
+            >
+              <c.icon className="h-7 w-7 text-brand-700 transition group-hover:scale-110" strokeWidth={1.5} />
+              <span className="text-sm font-medium text-ink">{c.name}</span>
+            </Link>
+          ))}
+          <Link
+            href="/products"
+            className="flex flex-col items-center justify-center gap-2 rounded-xl bg-brand-800 px-3 py-6 text-center text-white transition hover:bg-brand-700"
+          >
+            <ArrowRight className="h-6 w-6" />
+            <span className="text-sm font-semibold">전체 보기</span>
           </Link>
         </div>
-
-        <div className="mt-10">
-          <Suspense fallback={<ProductGridSkeleton />}>
-            <LatestProducts />
-          </Suspense>
-        </div>
       </section>
 
-      {/* ───────── 이용 방법 ───────── */}
-      <section id="how" className="scroll-mt-20 px-4 pb-20 sm:px-6">
-        <div className="mx-auto max-w-6xl rounded-[2.5rem] bg-goguma-900 px-6 py-16 text-white sm:px-12">
-          <p className="text-center font-semibold text-flesh-300">HOW IT WORKS</p>
-          <h2 className="mt-2 text-center text-3xl font-extrabold tracking-tight sm:text-4xl">거래는 고구마 굽기보다 쉬워요</h2>
-          <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {STEPS.map(([icon, title, desc], i) => (
-              <div key={title} className="rounded-3xl bg-white/[0.06] p-7 ring-1 ring-white/10 transition hover:bg-white/10">
-                <div className="flex items-center justify-between">
-                  <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-flesh-400 to-flesh-600 text-2xl shadow-lg shadow-flesh-600/30">
-                    {icon}
-                  </span>
-                  <span className="text-5xl font-black text-white/10">0{i + 1}</span>
-                </div>
-                <h3 className="mt-6 text-xl font-bold">{title}</h3>
-                <p className="mt-2 leading-relaxed text-white/60">{desc}</p>
+      {/* ───────── 안전거래 (어두운 섹션) ───────── */}
+      <section id="trust" className="relative scroll-mt-28 overflow-hidden bg-brand-950 text-white">
+        <div aria-hidden className="bg-grid-dark absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+        <div aria-hidden className="absolute -right-40 top-0 h-[500px] w-[500px] bg-[radial-gradient(closest-side,rgb(249_122_31/0.18),transparent)]" />
+        <div className="relative mx-auto grid max-w-7xl gap-14 px-4 py-24 sm:px-6 lg:grid-cols-[1fr_1.3fr]">
+          <div>
+            <Eyebrow dark>TRUST & SAFETY</Eyebrow>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-[2.5rem] sm:leading-[1.2]">
+              믿을 수 있는 거래를 위한
+              <br />
+              고구마마켓의 약속
+            </h2>
+            <p className="mt-5 text-[17px] leading-relaxed text-white/60">
+              안전한 거래 환경은 플랫폼의 기본입니다. 회원 인증부터 데이터 보안까지, 고구마마켓은 이웃 간
+              거래가 안심할 수 있도록 설계되었습니다.
+            </p>
+            <div className="mt-8 flex items-center gap-3 text-sm text-white/70">
+              <ShieldCheck className="h-5 w-5 text-accent-400" />
+              Supabase 행 단위 보안(RLS) 정책 적용
+            </div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {TRUST.map((t) => (
+              <div key={t.title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur transition hover:border-white/20 hover:bg-white/[0.07]">
+                <t.icon className="h-6 w-6 text-accent-400" strokeWidth={1.75} />
+                <h3 className="mt-5 text-lg font-semibold">{t.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-white/60">{t.desc}</p>
               </div>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ───────── 이용방법 ───────── */}
+      <section id="how" className="mx-auto max-w-7xl scroll-mt-28 px-4 py-24 sm:px-6">
+        <div className="text-center">
+          <div className="flex justify-center">
+            <Eyebrow>HOW IT WORKS</Eyebrow>
+          </div>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-ink sm:text-[2.5rem]">세 단계면 충분합니다</h2>
+        </div>
+        <ol className="relative mt-16 grid gap-10 md:grid-cols-3 md:gap-6">
+          <div aria-hidden className="absolute left-[16.6%] right-[16.6%] top-7 hidden h-px bg-line md:block" />
+          {STEPS.map((s, i) => (
+            <li key={s.title} className="relative text-center">
+              <span className="relative mx-auto grid h-14 w-14 place-items-center rounded-full border border-line bg-white text-brand-700 shadow-sm">
+                <s.icon className="h-6 w-6" strokeWidth={1.75} />
+                <span className="absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-accent-500 text-xs font-bold text-white">
+                  {i + 1}
+                </span>
+              </span>
+              <h3 className="mt-6 text-lg font-bold text-ink">{s.title}</h3>
+              <p className="mx-auto mt-2 max-w-xs text-muted">{s.desc}</p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       {/* ───────── CTA ───────── */}
-      <Suspense fallback={null}>
-        <GuestCta />
-      </Suspense>
+      <section className="px-4 pb-24 sm:px-6">
+        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-brand-800 px-6 py-16 sm:px-14">
+          <div aria-hidden className="bg-grid-dark absolute inset-0 [mask-image:radial-gradient(ellipse_at_right,black,transparent_70%)]" />
+          <div className="relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">지금 바로 시작하세요</h2>
+              <p className="mt-3 text-lg text-white/70">우리 동네 이웃들이 고구마마켓에서 기다리고 있습니다.</p>
+            </div>
+            <Suspense fallback={<div className="h-12 w-48" />}>
+              <CtaButtons />
+            </Suspense>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
 
-      <footer className="border-t border-line py-10 text-center text-sm text-muted">
-        <p>© 2026 고구마마켓 · 개발 공부용 프로젝트</p>
-      </footer>
+// 첫 화면 오른쪽: 서비스 화면을 보여 주는 그림 (예시 데이터)
+function HeroMock() {
+  return (
+    <div className="relative mx-auto w-full max-w-lg">
+      <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-[0_30px_80px_-30px_rgb(42_22_67/0.45)]">
+        <div className="flex items-center gap-2 border-b border-line bg-surface px-4 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          <span className="ml-3 flex-1 truncate rounded-md bg-white px-3 py-1 text-[11px] text-muted ring-1 ring-line">
+            goguma-market / 중고거래
+          </span>
+        </div>
+        <div className="p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-ink">우리 동네 최신 매물</p>
+            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700">서비스 화면 예시</span>
+          </div>
+          <ul className="mt-4 divide-y divide-line">
+            {MOCK_ROWS.map((r) => {
+              const Icon = CATEGORIES[r.cat].icon;
+              return (
+                <li key={r.title} className="flex items-center gap-4 py-3.5">
+                  <span className="bg-grid grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-surface ring-1 ring-line">
+                    <Icon className="h-6 w-6 text-brand-700" strokeWidth={1.5} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink">{r.title}</p>
+                    <p className="mt-0.5 text-xs text-muted">{r.meta}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-bold ${r.price === "나눔" ? "text-accent-600" : "text-ink"}`}>{r.price}</p>
+                    <p className={`mt-1 text-[11px] font-semibold ${r.status === "예약중" ? "text-emerald-700" : "text-accent-600"}`}>
+                      {r.status}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+
+      {/* 떠 있는 작은 정보 카드 */}
+      <div className="absolute -bottom-6 -left-4 hidden items-center gap-3 rounded-xl border border-line bg-white px-4 py-3 shadow-xl sm:flex">
+        <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent-50 text-accent-600">
+          <BadgePercent className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs text-muted">거래 수수료</p>
+          <p className="font-bold text-ink">0원</p>
+        </div>
+      </div>
+      <div className="absolute -right-4 -top-5 hidden items-center gap-3 rounded-xl border border-line bg-white px-4 py-3 shadow-xl sm:flex">
+        <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-700">
+          <Clock className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs text-muted">판매글 등록</p>
+          <p className="font-bold text-ink">1분이면 충분</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -199,11 +316,11 @@ async function LatestProducts() {
   const products = await getLatestProducts(8);
   if (products.length === 0) return <EmptyProducts />;
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-4">
+    <ProductGrid>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} />
       ))}
-    </div>
+    </ProductGrid>
   );
 }
 
@@ -217,11 +334,11 @@ async function WelcomeBanner({ searchParams }: { searchParams: PageProps<"/">["s
   if (!user) return null;
 
   return (
-    <div className="mx-auto mt-4 max-w-6xl px-4 sm:px-6">
-      <div className="animate-rise flex items-center gap-3 rounded-2xl bg-goguma-700 px-5 py-4 text-white shadow-xl shadow-goguma-700/20">
-        <span className="text-2xl">🎉</span>
-        <p className="text-sm sm:text-base">
-          <b>{user.nickname}</b>님, 고구마마켓에 오신 걸 환영해요! 따끈한 거래 시작해 볼까요?
+    <div className="border-b border-brand-100 bg-brand-50">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 text-sm text-brand-900 sm:px-6">
+        <CircleCheck className="h-5 w-5 shrink-0 text-brand-700" />
+        <p>
+          <b>{user.nickname}</b>님, 고구마마켓 회원이 되신 것을 환영합니다.
         </p>
       </div>
     </div>
@@ -230,66 +347,37 @@ async function WelcomeBanner({ searchParams }: { searchParams: PageProps<"/">["s
 
 async function HeroButtons() {
   const user = await getCurrentUser();
-
-  if (user) {
-    return (
-      <div className="mt-10 flex flex-wrap items-center gap-3">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-4 font-semibold shadow-sm ring-1 ring-line">
-          👋 <b className="text-goguma-700">{user.nickname}</b>님, 오늘은 어떤 걸 찾아볼까요?
-        </span>
-      </div>
-    );
-  }
-
   return (
-    <div className="mt-10 flex flex-wrap items-center gap-3">
-      <Link
-        href="/signup"
-        className="group inline-flex items-center gap-2 rounded-full bg-goguma-700 px-7 py-4 font-bold text-white shadow-xl shadow-goguma-700/30 transition hover:-translate-y-0.5 hover:bg-goguma-600"
-      >
-        3초 만에 시작하기
-        <span className="transition group-hover:translate-x-1">→</span>
-      </Link>
-      <Link href="/login" className="rounded-full px-6 py-4 font-semibold text-goguma-700 transition hover:bg-goguma-50">
-        이미 회원이에요
+    <div className="mt-9 flex flex-wrap items-center gap-3">
+      {user ? (
+        <Link href="/products/new" className={btn.primary}>
+          판매글 등록하기 <ArrowRight className="h-4 w-4" />
+        </Link>
+      ) : (
+        <Link href="/signup" className={btn.primary}>
+          무료로 시작하기 <ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
+      <Link href="/products" className={btn.outline}>
+        매물 둘러보기
       </Link>
     </div>
   );
 }
 
-async function GuestCta() {
+async function CtaButtons() {
   const user = await getCurrentUser();
-  if (user) return null;
-
   return (
-    <section className="px-4 pb-24 sm:px-6">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-flesh-400 via-flesh-500 to-[#e2558a] px-6 py-16 text-center text-white sm:px-12">
-        <div aria-hidden className="absolute -left-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-2xl" />
-        <div aria-hidden className="absolute -bottom-16 right-10 h-56 w-56 rounded-full bg-goguma-600/40 blur-2xl" />
-        <h2 className="relative text-3xl font-extrabold tracking-tight sm:text-4xl">우리 동네 이웃이 기다리고 있어요</h2>
-        <p className="relative mt-3 text-white/85">가입하고 첫 거래를 시작해 보세요. 수수료는 0원!</p>
-        <Link
-          href="/signup"
-          className="relative mt-8 inline-flex rounded-full bg-white px-8 py-4 font-bold text-flesh-600 shadow-xl transition hover:-translate-y-0.5"
-        >
-          무료로 가입하기
-        </Link>
-      </div>
-    </section>
-  );
-}
-
-function FloatCard({ item, className }: { item: Item; className: string }) {
-  return (
-    <div className={`w-40 rounded-3xl bg-white p-3 shadow-2xl shadow-goguma-900/20 sm:w-48 ${className}`}>
-      <div className={`grid aspect-[4/3] place-items-center rounded-2xl bg-gradient-to-br ${item.tone}`}>
-        <span className="text-5xl">{item.emoji}</span>
-      </div>
-      <p className="mt-2.5 line-clamp-1 text-sm font-semibold">{item.title}</p>
-      <div className="mt-0.5 flex items-center justify-between">
-        <p className="text-sm font-extrabold text-goguma-700">{won(item.price)}</p>
-        <p className="text-[11px] text-muted">{item.place}</p>
-      </div>
+    <div className="flex flex-wrap gap-3">
+      <Link href={user ? "/products/new" : "/signup"} className={btn.white}>
+        {user ? "판매글 등록하기" : "무료 회원가입"} <ArrowRight className="h-4 w-4" />
+      </Link>
+      <Link
+        href="/products"
+        className="inline-flex items-center justify-center rounded-lg border border-white/25 px-5 py-3 text-[15px] font-semibold text-white transition hover:bg-white/10"
+      >
+        매물 둘러보기
+      </Link>
     </div>
   );
 }

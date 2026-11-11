@@ -9,12 +9,12 @@ export const metadata: Metadata = { title: "로그인 · 고구마마켓" };
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <AuthShell
-      title="다시 만나서 반가워요 👋"
-      subtitle="이메일로 로그인하고 동네 거래를 이어가세요."
+      title="로그인"
+      subtitle="고구마마켓 계정으로 로그인하세요."
       footer={
         <>
           아직 회원이 아니신가요?{" "}
-          <Link href="/signup" className="font-bold text-goguma-700 hover:underline">
+          <Link href="/signup" className="font-semibold text-brand-700 hover:underline">
             회원가입
           </Link>
         </>

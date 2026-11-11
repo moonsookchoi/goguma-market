@@ -16,7 +16,7 @@ export default function DeleteProductButton({ id }: { id: number }) {
           startTransition(() => deleteProduct(id));
         }
       }}
-      className="rounded-full px-4 py-2 text-sm font-semibold text-red-500 ring-1 ring-red-100 transition hover:bg-red-50 disabled:opacity-60"
+      className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
     >
       {pending ? "삭제 중..." : "삭제"}
     </button>

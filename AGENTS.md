@@ -11,6 +11,13 @@
 - 코드에는 공부에 도움이 되게 **짧은 한국어 주석**으로 "왜 이렇게 하는지"를 남긴다.
 - 아직 DB에 없는 데이터(예: 홈의 인기 매물)는 예시 데이터임을 화면과 코드에 표시한다.
 
+## 디자인 규칙 (기업형)
+- 사용자는 **기업 홈페이지 같은 디자인**을 원한다. 귀여운 파스텔·이모지·둥근 알약 버튼 위주의 스타일로 돌아가지 않는다. (가계부 디자인과도 다르게)
+- 색: `brand-*`(깊은 보라, 메인) · `accent-*`(주황, 포인트만) · `ink / body / muted / line / surface`(글씨·테두리·배경) — `app/globals.css` 참고
+- 버튼·입력칸·제목 띠는 `components/ui.tsx`의 `btn`, `inputClass`, `PageHeader`, `SectionHeader`를 재사용한다.
+- 아이콘은 `lucide-react` 선 아이콘을 쓰고, UI에 이모지는 쓰지 않는다.
+- 샘플 판매글 10개는 설명에 `[샘플]`이 들어 있다 (`supabase/03_sample_products.sql`). 지우라고 하면 이 표시로 지운다.
+
 ## ⚠️ Supabase — 가계부와 같은 프로젝트를 재활용 중
 - Supabase 프로젝트 `moonsookchoi's Project` (ref: `jazfkgxdotdwhzlpcunu`)는 **가계부 앱과 함께 쓴다.**
   - 가계부 저장소: https://github.com/moonsookchoi/gagyebu , 가계부 테이블: `public.entries`

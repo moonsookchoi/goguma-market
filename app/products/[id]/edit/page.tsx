@@ -5,21 +5,26 @@ import { getCurrentUser } from "@/lib/supabase/server";
 import { getProduct } from "@/app/products/data";
 import { updateProduct } from "@/app/products/actions";
 import ProductForm from "@/components/ProductForm";
+import { PageHeader } from "@/components/ui";
 
 export const metadata: Metadata = { title: "판매글 수정 · 고구마마켓" };
 
 // U: 판매글 수정 화면
 export default function EditProductPage({ params }: PageProps<"/products/[id]/edit">) {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <h1 className="text-3xl font-extrabold tracking-tight">판매글 수정 ✏️</h1>
-      <p className="mt-2 text-muted">바뀐 내용을 고쳐 주세요.</p>
-      <div className="mt-8">
-        <Suspense fallback={<div className="h-96 animate-pulse rounded-3xl bg-goguma-50" />}>
+    <>
+      <PageHeader
+        width="max-w-4xl"
+        crumbs={[{ href: "/products", label: "중고거래" }, { label: "판매글 수정" }]}
+        title="판매글 수정"
+        desc="변경된 내용을 수정해 주세요."
+      />
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+        <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-surface" />}>
           <EditForm params={params} />
         </Suspense>
       </div>
-    </div>
+    </>
   );
 }
 

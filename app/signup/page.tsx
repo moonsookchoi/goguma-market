@@ -8,12 +8,12 @@ export const metadata: Metadata = { title: "회원가입 · 고구마마켓" };
 export default function SignupPage() {
   return (
     <AuthShell
-      title="고구마마켓 시작하기 🍠"
-      subtitle="닉네임과 이메일만 있으면 바로 가입할 수 있어요."
+      title="회원가입"
+      subtitle="닉네임과 이메일만 있으면 바로 시작할 수 있습니다."
       footer={
         <>
           이미 회원이신가요?{" "}
-          <Link href="/login" className="font-bold text-goguma-700 hover:underline">
+          <Link href="/login" className="font-semibold text-brand-700 hover:underline">
             로그인
           </Link>
         </>

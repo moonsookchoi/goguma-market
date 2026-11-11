@@ -1,23 +1,28 @@
 // 판매글에서 같이 쓰는 값과 도우미 함수 (서버·클라이언트 공용)
 
-// 카테고리: DB에는 영어 key, 화면에는 이름과 이모지. 사진 기능이 생기기 전까지는 이모지가 대표 이미지 역할
-export const CATEGORIES = [
-  { key: "digital", name: "디지털기기", emoji: "📱", tone: "from-[#e6eefc] to-[#f4f7fe]" },
-  { key: "furniture", name: "가구/인테리어", emoji: "🛋️", tone: "from-flesh-100 to-[#fffaf3]" },
-  { key: "clothes", name: "의류", emoji: "👕", tone: "from-[#fde6ea] to-[#fff4f6]" },
-  { key: "kids", name: "유아동", emoji: "🧸", tone: "from-[#fff3c9] to-[#fffbea]" },
-  { key: "living", name: "생활/주방", emoji: "🍳", tone: "from-flesh-100 to-[#fff7ec]" },
-  { key: "sports", name: "스포츠/레저", emoji: "⚽", tone: "from-[#e5f6ea] to-[#f4fbf6]" },
-  { key: "books", name: "도서", emoji: "📚", tone: "from-goguma-100 to-goguma-50" },
-  { key: "hobby", name: "취미/게임", emoji: "🎮", tone: "from-[#fde6ea] to-[#fff4f6]" },
-  { key: "beauty", name: "뷰티/미용", emoji: "💄", tone: "from-[#fde6f3] to-[#fff4fa]" },
-  { key: "pets", name: "반려동물", emoji: "🐶", tone: "from-[#fff3c9] to-[#fffbea]" },
-  { key: "tickets", name: "티켓/교환권", emoji: "🎟️", tone: "from-goguma-100 to-goguma-50" },
-  { key: "plants", name: "식물", emoji: "🌱", tone: "from-[#e5f6ea] to-[#f4fbf6]" },
-  { key: "etc", name: "기타", emoji: "📦", tone: "from-[#efe9e4] to-[#f8f5f2]" },
-] as const;
+import {
+  Baby, BookOpen, CookingPot, Dumbbell, Gamepad2, Package, PawPrint, Shirt,
+  Smartphone, Sofa, Sparkles, Sprout, Ticket, type LucideIcon,
+} from "lucide-react";
 
-export type CategoryKey = (typeof CATEGORIES)[number]["key"];
+// 카테고리: DB에는 영어 key, 화면에는 이름과 선 아이콘. 사진 기능이 생기기 전까지는 아이콘이 대표 이미지 역할
+export const CATEGORIES: readonly { key: string; name: string; icon: LucideIcon }[] = [
+  { key: "digital", name: "디지털기기", icon: Smartphone },
+  { key: "furniture", name: "가구/인테리어", icon: Sofa },
+  { key: "clothes", name: "의류", icon: Shirt },
+  { key: "kids", name: "유아동", icon: Baby },
+  { key: "living", name: "생활/주방", icon: CookingPot },
+  { key: "sports", name: "스포츠/레저", icon: Dumbbell },
+  { key: "books", name: "도서", icon: BookOpen },
+  { key: "hobby", name: "취미/게임", icon: Gamepad2 },
+  { key: "beauty", name: "뷰티/미용", icon: Sparkles },
+  { key: "pets", name: "반려동물", icon: PawPrint },
+  { key: "tickets", name: "티켓/교환권", icon: Ticket },
+  { key: "plants", name: "식물", icon: Sprout },
+  { key: "etc", name: "기타", icon: Package },
+];
+
+export type CategoryKey = string;
 
 export function getCategory(key: string) {
   return CATEGORIES.find((c) => c.key === key) ?? CATEGORIES[CATEGORIES.length - 1];
@@ -25,9 +30,9 @@ export function getCategory(key: string) {
 
 // 판매 상태
 export const STATUSES = {
-  selling: { label: "판매중", badge: "bg-flesh-100 text-flesh-600" },
-  reserved: { label: "예약중", badge: "bg-[#e5f6ea] text-[#2f8a4c]" },
-  sold: { label: "거래완료", badge: "bg-[#efe9e4] text-muted" },
+  selling: { label: "판매중", badge: "bg-accent-50 text-accent-600 ring-accent-100" },
+  reserved: { label: "예약중", badge: "bg-emerald-50 text-emerald-700 ring-emerald-100" },
+  sold: { label: "거래완료", badge: "bg-surface text-muted ring-line" },
 } as const;
 
 export type ProductStatus = keyof typeof STATUSES;
@@ -51,7 +56,7 @@ export type Product = {
 export const PRODUCT_SELECT =
   "id, seller_id, title, description, price, category, region, status, created_at, updated_at, seller:goguma_profiles(nickname, region)";
 
-export const won = (n: number) => (n === 0 ? "나눔 🧡" : `${n.toLocaleString("ko-KR")}원`);
+export const won = (n: number) => (n === 0 ? "나눔" : `${n.toLocaleString("ko-KR")}원`);
 
 // "3분 전" 같은 상대 시간
 export function timeAgo(iso: string) {

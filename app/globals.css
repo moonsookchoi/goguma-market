@@ -1,43 +1,49 @@
 @import "tailwindcss";
 
-/* 고구마마켓 색상 — 껍질(보라) + 속살(주황/노랑) */
+/*
+  고구마마켓 디자인 시스템 (기업형)
+  - brand  : 고구마 껍질의 깊은 보라 → 메인 색 (버튼, 링크, 어두운 섹션)
+  - accent : 고구마 속살 주황 → 강조 포인트에만 조금씩
+  - 나머지는 흰색·회색 중심으로 깔끔하게
+*/
 @theme {
-  --color-cream: #fff8f1;
-  --color-ink: #24112f;
-  --color-muted: #7a6a80;
-  --color-line: #efe3d9;
-  --color-goguma-50: #f6effb;
-  --color-goguma-100: #ecdcf6;
-  --color-goguma-200: #d7b8ec;
-  --color-goguma-500: #8a4fc0;
-  --color-goguma-600: #6f35a5;
-  --color-goguma-700: #5a2886;
-  --color-goguma-900: #2e1247;
-  --color-flesh-100: #fff0dc;
-  --color-flesh-300: #ffc98a;
-  --color-flesh-400: #ffa654;
-  --color-flesh-500: #ff8a2b;
-  --color-flesh-600: #f06d0f;
+  --color-brand-50: #f7f4fb;
+  --color-brand-100: #ede6f6;
+  --color-brand-200: #d9cbec;
+  --color-brand-300: #b9a0da;
+  --color-brand-400: #9672c4;
+  --color-brand-500: #7a4fb0;
+  --color-brand-600: #643a98;
+  --color-brand-700: #522d7e;
+  --color-brand-800: #3f2263;
+  --color-brand-900: #2a1643;
+  --color-brand-950: #150a22;
+
+  --color-accent-50: #fff6ed;
+  --color-accent-100: #ffead3;
+  --color-accent-400: #ff9a4d;
+  --color-accent-500: #f97a1f;
+  --color-accent-600: #e0620a;
+
+  --color-ink: #0f0d14; /* 제목 */
+  --color-body: #3b3842; /* 본문 */
+  --color-muted: #6e6a76; /* 보조 글씨 */
+  --color-line: #e7e5ea; /* 테두리 */
+  --color-surface: #f7f7f9; /* 옅은 회색 배경 */
 
   --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
     "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 
-  --animate-float: float 6s ease-in-out infinite;
-  --animate-float-slow: float 8s ease-in-out infinite;
-  --animate-marquee: marquee 30s linear infinite;
-  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-rise: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-marquee: marquee 40s linear infinite;
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-14px); }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   @keyframes marquee {
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
-  }
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(18px); }
-    to { opacity: 1; transform: translateY(0); }
   }
 }
 
@@ -46,15 +52,30 @@
 }
 
 body {
-  background: var(--color-cream);
-  color: var(--color-ink);
+  background: #fff;
+  color: var(--color-body);
   font-family: var(--font-sans);
   word-break: keep-all;
+  -webkit-font-smoothing: antialiased;
 }
 
 ::selection {
-  background: var(--color-flesh-300);
+  background: var(--color-brand-200);
   color: var(--color-ink);
+}
+
+/* 섹션 배경에 쓰는 옅은 격자 무늬 */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(15 13 20 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(15 13 20 / 0.05) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.bg-grid-dark {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
 @media (prefers-reduced-motion: reduce) {

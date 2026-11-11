@@ -1,44 +1,43 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { CircleCheck, Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { CATEGORIES, PRODUCT_SELECT, getCategory, type Product } from "@/lib/products";
-import ProductCard, { EmptyProducts, ProductGridSkeleton } from "@/components/ProductCard";
+import ProductCard, { EmptyProducts, ProductGrid, ProductGridSkeleton } from "@/components/ProductCard";
+import { btn, PageHeader } from "@/components/ui";
 
 export const metadata: Metadata = { title: "중고거래 · 고구마마켓" };
 
 // R: 판매글 목록 (카테고리로 거르기: /products?category=digital)
 export default function ProductsPage({ searchParams }: PageProps<"/products">) {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="font-semibold text-flesh-600">🍠 중고거래</p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">우리 동네 판매글</h1>
-        </div>
-        <Link
-          href="/products/new"
-          className="rounded-full bg-flesh-500 px-5 py-3 font-semibold text-white shadow-lg shadow-flesh-500/25 transition hover:-translate-y-0.5 hover:bg-flesh-600"
-        >
-          + 판매글 쓰기
-        </Link>
+    <>
+      <PageHeader
+        crumbs={[{ label: "중고거래" }]}
+        title="중고거래"
+        desc="우리 동네 이웃들이 등록한 판매글을 확인하세요."
+        action={
+          <Link href="/products/new" className={btn.primary}>
+            <Plus className="h-4 w-4" strokeWidth={2.5} /> 판매글 쓰기
+          </Link>
+        }
+      />
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <Suspense fallback={<ListFallback />}>
+          <ProductList searchParams={searchParams} />
+        </Suspense>
       </div>
-
-      <Suspense fallback={<ListFallback />}>
-        <ProductList searchParams={searchParams} />
-      </Suspense>
-    </div>
+    </>
   );
 }
 
 function ListFallback() {
   return (
-    <>
-      <div className="mt-8 h-10 animate-pulse rounded-full bg-goguma-50" />
-      <div className="mt-8">
-        <ProductGridSkeleton />
-      </div>
-    </>
+    <div className="grid gap-8 lg:grid-cols-[220px_1fr]">
+      <div className="h-80 animate-pulse rounded-xl bg-surface" />
+      <ProductGridSkeleton count={6} />
+    </div>
   );
 }
 
@@ -55,47 +54,63 @@ async function ProductList({ searchParams }: { searchParams: PageProps<"/product
   return (
     <>
       {deleted && (
-        <p className="animate-rise mt-6 rounded-2xl bg-goguma-700 px-5 py-3 text-sm text-white">🗑️ 판매글을 삭제했어요.</p>
+        <p className="animate-rise mb-6 flex items-center gap-2 rounded-lg border border-brand-100 bg-brand-50 px-4 py-3 text-sm text-brand-900">
+          <CircleCheck className="h-4 w-4 text-brand-700" /> 판매글이 삭제되었습니다.
+        </p>
       )}
 
-      {/* 카테고리 필터 */}
-      <nav className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
-        <FilterChip href="/products" active={!selected}>
-          전체
-        </FilterChip>
-        {CATEGORIES.map((c) => (
-          <FilterChip key={c.key} href={`/products?category=${c.key}`} active={selected === c.key}>
-            {c.emoji} {c.name}
-          </FilterChip>
-        ))}
-      </nav>
-
-      <div className="mt-8">
-        {error ? (
-          <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">판매글을 불러오지 못했어요. 새로고침해 주세요.</p>
-        ) : products.length === 0 ? (
-          <EmptyProducts message={selected ? `${getCategory(selected).name} 판매글이 아직 없어요.` : undefined} />
-        ) : (
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 md:grid-cols-4">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={p} />
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[220px_minmax(0,1fr)]">
+        {/* 카테고리 필터: 큰 화면은 왼쪽 사이드바, 작은 화면은 가로 스크롤 */}
+        <aside>
+          <p className="hidden text-xs font-bold tracking-[0.15em] text-muted lg:block">CATEGORY</p>
+          <nav className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 lg:mx-0 lg:mt-3 lg:flex-col lg:gap-0.5 lg:overflow-visible lg:px-0">
+            <FilterItem href="/products" active={!selected} label="전체" />
+            {CATEGORIES.map((c) => (
+              <FilterItem key={c.key} href={`/products?category=${c.key}`} active={selected === c.key} label={c.name} icon={<c.icon className="h-4 w-4" strokeWidth={1.75} />} />
             ))}
+          </nav>
+        </aside>
+
+        <div className="min-w-0">
+          <div className="mb-5 flex items-center justify-between border-b border-line pb-4">
+            <p className="text-sm text-muted">
+              <b className="text-ink">{selected ? getCategory(selected).name : "전체"}</b> · 총{" "}
+              <b className="text-ink">{products.length}</b>건
+            </p>
+            <p className="text-sm text-muted">최신순</p>
           </div>
-        )}
+          {error ? (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              판매글을 불러오지 못했습니다. 새로고침해 주세요.
+            </p>
+          ) : products.length === 0 ? (
+            <EmptyProducts message={selected ? `${getCategory(selected).name} 카테고리에 등록된 판매글이 없습니다.` : undefined} />
+          ) : (
+            <ProductGrid>
+              {products.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </ProductGrid>
+          )}
+        </div>
       </div>
     </>
   );
 }
 
-function FilterChip({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
+function FilterItem({ href, active, label, icon }: { href: string; active: boolean; label: string; icon?: React.ReactNode }) {
   return (
     <Link
       href={href}
-      className={`shrink-0 whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold ring-1 transition ${
-        active ? "bg-goguma-700 text-white ring-goguma-700" : "bg-white ring-line hover:ring-goguma-200"
+      aria-current={active ? "page" : undefined}
+      className={`flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-lg px-3 py-2 text-sm transition max-lg:border ${
+        active
+          ? "bg-brand-800 font-semibold text-white max-lg:border-brand-800 lg:bg-brand-50 lg:text-brand-800"
+          : "text-body hover:bg-surface hover:text-ink max-lg:border-line max-lg:bg-white"
       }`}
     >
-      {children}
+      {icon}
+      {label}
     </Link>
   );
 }

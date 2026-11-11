@@ -1,32 +1,27 @@
-// 고구마 모양 로고 (SVG)
+// 고구마마켓 로고 — 단순한 기하학 심볼 + 워드마크 (기업형)
 export function GogumaIcon({ className = "h-8 w-8" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
-      <defs>
-        <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#9b5fd0" />
-          <stop offset="1" stopColor="#5a2886" />
-        </linearGradient>
-      </defs>
-      <path d="M30 9c2-4 6-5 9-4-1 3-3 6-7 7" fill="#4caf6a" />
-      <path d="M27 11c-1-3 0-6 2-8 2 2 3 5 1 8" fill="#6cc785" />
-      <path
-        d="M10 30c-3-8 3-17 13-19 9-2 17 3 17 11 0 9-8 19-19 20-6 1-9-5-11-12z"
-        fill="url(#skin)"
-      />
-      <path d="M18 31c-1-5 2-10 7-11 4-1 7 1 7 5 0 5-4 9-9 10-3 0-4-2-5-4z" fill="#ffb066" opacity=".95" />
-      <circle cx="17" cy="20" r="1.4" fill="#fff" opacity=".5" />
-      <circle cx="31" cy="34" r="1.1" fill="#fff" opacity=".35" />
+    <svg viewBox="0 0 32 32" className={className} aria-hidden="true">
+      <rect width="32" height="32" rx="8" fill="#3f2263" />
+      {/* 고구마 단면: 보라 껍질 안의 주황 속살 */}
+      <ellipse cx="16" cy="17.5" rx="9" ry="7" transform="rotate(-28 16 17.5)" fill="#7a4fb0" />
+      <ellipse cx="16" cy="17.5" rx="5.6" ry="4.2" transform="rotate(-28 16 17.5)" fill="#ff9a4d" />
+      <path d="M21 8.5c1.6-1.8 3.6-2.2 5-1.8-.5 1.7-2 3.1-4.2 3.4" fill="#5fd08a" />
     </svg>
   );
 }
 
-export function Logo() {
+export function Logo({ inverted = false }: { inverted?: boolean }) {
   return (
-    <span className="flex items-center gap-2">
+    <span className="flex items-center gap-2.5">
       <GogumaIcon />
-      <span className="text-xl font-extrabold tracking-tight text-goguma-700">
-        고구마<span className="text-flesh-500">마켓</span>
+      <span className="flex flex-col leading-none">
+        <span className={`text-[17px] font-extrabold tracking-tight ${inverted ? "text-white" : "text-ink"}`}>
+          고구마마켓
+        </span>
+        <span className={`mt-1 text-[9px] font-bold tracking-[0.2em] ${inverted ? "text-white/50" : "text-muted"}`}>
+          GOGUMA MARKET
+        </span>
       </span>
     </span>
   );
