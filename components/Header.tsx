@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { LogOut, Plus } from "lucide-react";
+import { Bell, LogOut, Plus } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { btn } from "@/components/ui";
-import { getCurrentUser } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 
 const NAV = [
@@ -82,6 +82,11 @@ export default async function Header() {
     );
   }
 
+  // 안 읽은 알림 수
+  const supabase = await createClient();
+  const { count } = await supabase.from("goguma_notifications").select("id", { count: "exact", head: true }).is("read_at", null);
+  const unread = count ?? 0;
+
   return (
     <Shell
       right={
@@ -95,6 +100,15 @@ export default async function Header() {
               {user.region && <span className="text-xs text-muted">{user.region}</span>}
             </span>
           </div>
+          {/* 알림함 (안 읽은 알림 수) */}
+          <Link href="/notifications" aria-label={`알림 ${unread}개`} className="relative grid h-10 w-10 place-items-center rounded-lg text-body transition hover:bg-surface hover:text-ink">
+            <Bell className="h-5 w-5" />
+            {unread > 0 && (
+              <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-accent-500 px-1 text-[10px] font-bold text-white">
+                {unread > 9 ? "9+" : unread}
+              </span>
+            )}
+          </Link>
           <Link href="/products/new" className={`${btn.accent} !px-3.5 !py-2.5 !text-sm`}>
             <Plus className="h-4 w-4" strokeWidth={2.5} />
             <span className="hidden sm:inline">판매글 쓰기</span>
