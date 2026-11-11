@@ -1,15 +1,22 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  ArrowRight, BadgePercent, CircleCheck, Lock, MapPin, MessageCircle, Navigation,
+  ArrowRight, BadgePercent, CircleCheck, Clock, Lock, MapPin, MessageCircle, Navigation,
   PenLine, Search, ShieldCheck, Store, Users, Zap,
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { getLatestProducts, getNearbyProducts } from "@/app/products/data";
+import { getLatestProducts, getNearbyProducts, getPopularProducts } from "@/app/products/data";
 import { CATEGORIES } from "@/lib/products";
 import { NEAR_KM } from "@/lib/regions";
 import ProductCard, { EmptyProducts, ProductGrid, ProductGridSkeleton } from "@/components/ProductCard";
 import { btn, Eyebrow, SectionHeader } from "@/components/ui";
+
+// 첫 화면 오른쪽 '서비스 화면' 그림에만 쓰는 예시 데이터 (실제 판매글은 아래 '최신 매물'에서 DB로 보여 줘요)
+const MOCK_ROWS = [
+  { cat: 0, title: "아이폰 15 Pro 256GB", price: "890,000원", meta: "망원동 · 3분 전", status: "판매중" },
+  { cat: 1, title: "원목 4인 식탁 세트", price: "120,000원", meta: "연남동 · 12분 전", status: "예약중" },
+  { cat: 6, title: "개발 서적 5권 묶음", price: "나눔", meta: "합정동 · 25분 전", status: "판매중" },
+];
 
 const FEATURES = [
   { icon: BadgePercent, title: "수수료 0원", desc: "판매 금액 그대로 내 것. 중개 수수료 없이 이웃과 직접 거래합니다." },
@@ -49,68 +56,54 @@ export default function Home({ searchParams }: PageProps<"/">) {
         <div aria-hidden className="bg-grid absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]" />
         <div aria-hidden className="absolute right-0 top-0 -z-10 h-[520px] w-[620px] bg-[radial-gradient(closest-side,rgb(122_79_176/0.14),transparent)]" />
 
-        {/* 첫 화면은 짧게: 바로 아래 매물이 보이도록 높이를 줄였어요 */}
-        <div className="animate-rise mx-auto max-w-7xl px-4 pb-6 pt-8 sm:px-6 lg:pt-10">
-          <Eyebrow>LOCAL MARKETPLACE PLATFORM</Eyebrow>
-          <div className="mt-3 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0">
-              <h1 className="text-[1.75rem] font-bold leading-tight tracking-tight text-ink sm:text-4xl">
-                동네 거래의 <span className="text-brand-700">새로운 기준</span>, 고구마마켓
-              </h1>
-              <p className="mt-2 text-[15px] text-muted sm:text-base">
-                가까운 이웃과 믿고 거래하는 동네 중고거래 플랫폼. 수수료 없이, 안전하게.
-              </p>
-            </div>
-            {/* 검색 + 버튼을 한 줄에 */}
-            <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center lg:w-auto">
-              <form
-                action="/products"
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-line bg-white p-1.5 shadow-[0_8px_30px_-12px_rgb(15_13_20/0.15)] lg:w-[420px] lg:flex-none"
-                title="검색 기능은 다음 단계에서 제공돼요. 지금은 전체 판매글로 이동해요."
-              >
-                <Search className="ml-2.5 h-5 w-5 shrink-0 text-muted" />
-                <input
-                  name="q"
-                  aria-label="물건 검색"
-                  placeholder="어떤 물건을 찾고 계신가요?"
-                  className="min-w-0 flex-1 bg-transparent px-1 py-2 text-[15px] text-ink outline-none placeholder:text-muted/80"
-                />
-                <button className={`${btn.primary} !px-4 !py-2`}>검색</button>
-              </form>
-              <Suspense fallback={null}>
-                <HeroButtons />
-              </Suspense>
-            </div>
-          </div>
-        </div>
+        <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 pb-20 pt-16 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:pb-28 lg:pt-24">
+          <div className="animate-rise min-w-0">
+            <Eyebrow>LOCAL MARKETPLACE PLATFORM</Eyebrow>
+            <h1 className="mt-6 text-[2.5rem] font-bold leading-[1.15] tracking-tight text-ink sm:text-[3.6rem]">
+              동네 거래의
+              <br />
+              <span className="text-brand-700">새로운 기준</span>, 고구마마켓
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
+              가까운 이웃과 믿고 거래하는 동네 중고거래 플랫폼. 수수료 없이, 안전하게,
+              필요한 물건을 가장 가까운 곳에서 찾아보세요.
+            </p>
 
-        {/* 카테고리 바로가기 (가로로 넘겨 보기) */}
-        <div id="categories" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-8 sm:px-6">
-          <nav aria-label="카테고리" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
-            {CATEGORIES.map((c) => (
-              <Link
-                key={c.key}
-                href={`/products?category=${c.key}`}
-                className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-line bg-white px-3.5 py-2 text-sm font-medium text-body transition hover:border-brand-200 hover:text-brand-800"
-              >
-                <c.icon className="h-4 w-4 text-brand-700" strokeWidth={1.75} />
-                {c.name}
-              </Link>
-            ))}
-          </nav>
+            <form action="/products" className="mt-9 flex max-w-xl items-center gap-2 rounded-xl border border-line bg-white p-1.5 shadow-[0_8px_30px_-12px_rgb(15_13_20/0.15)]">
+              <Search className="ml-3 h-5 w-5 shrink-0 text-muted" />
+              <input
+                name="q"
+                aria-label="물건 검색"
+                placeholder="어떤 물건을 찾고 계신가요?"
+                className="min-w-0 flex-1 bg-transparent px-2 py-3 text-[15px] text-ink outline-none placeholder:text-muted/80"
+              />
+              <button className={`${btn.primary} !py-2.5`}>검색</button>
+            </form>
+            <p className="mt-3 text-xs text-muted">예) 아이폰, 자전거, 캠핑의자 — 검색하면 동네 시세도 함께 보여 드려요.</p>
+
+            <Suspense fallback={<div className="mt-9 h-12" />}>
+              <HeroButtons />
+            </Suspense>
+          </div>
+
+          <HeroMock />
         </div>
       </section>
 
-      {/* ───────── 우리 동네 근처 매물 (로그인 + 동네 정보가 있을 때) ───────── */}
+      {/* ───────── 우리 동네 근처 매물 (첫 화면 바로 아래) ───────── */}
       <Suspense fallback={null}>
         <NearbySection />
       </Suspense>
 
       {/* ───────── 최신 매물 (DB) ───────── */}
-      <section className="border-b border-line bg-surface">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-14">
-          <ListingHeader eyebrow="LATEST LISTINGS" title="방금 등록된 매물" href="/products" link="전체 매물 보기" />
-          <div className="mt-6">
+      <section className="border-y border-line bg-surface">
+        <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+          <SectionHeader
+            eyebrow="LATEST LISTINGS"
+            title="방금 등록된 우리 동네 매물"
+            action={{ href: "/products", label: "전체 매물 보기" }}
+          />
+          <div className="mt-12">
             <Suspense fallback={<ProductGridSkeleton />}>
               <LatestProducts />
             </Suspense>
@@ -118,12 +111,20 @@ export default function Home({ searchParams }: PageProps<"/">) {
         </div>
       </section>
 
-      {/* 로그인 안 한 사람에게: 근처 매물 안내 */}
-      <Suspense fallback={null}>
-        <GuestNearbyCta />
-      </Suspense>
-
-      {/* ───────── 아래부터는 서비스 소개 ───────── */}
+      {/* ───────── 이번 주 인기 매물 (조회수 + 찜) ───────── */}
+      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+        <SectionHeader
+          eyebrow="TRENDING"
+          title="이번 주 인기 매물"
+          desc="조회수와 찜이 많은 판매글을 모았어요."
+          action={{ href: "/products?tab=free", label: "나눔 코너 보기" }}
+        />
+        <div className="mt-10">
+          <Suspense fallback={<ProductGridSkeleton count={4} />}>
+            <PopularProducts />
+          </Suspense>
+        </div>
+      </section>
 
       {/* ───────── 핵심 수치 ───────── */}
       <section className="border-b border-line bg-white">
@@ -157,6 +158,34 @@ export default function Home({ searchParams }: PageProps<"/">) {
               <p className="mt-3 leading-relaxed text-muted">{f.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* ───────── 카테고리 ───────── */}
+      <section id="categories" className="mx-auto max-w-7xl scroll-mt-28 px-4 py-24 sm:px-6">
+        <SectionHeader
+          eyebrow="CATEGORIES"
+          title="카테고리별로 찾아보세요"
+          desc="디지털기기부터 식물까지, 생활에 필요한 모든 물건을 카테고리로 나눠 두었습니다."
+        />
+        <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+          {CATEGORIES.map((c) => (
+            <Link
+              key={c.key}
+              href={`/products?category=${c.key}`}
+              className="group flex flex-col items-center gap-3 rounded-xl border border-line bg-white px-3 py-6 text-center transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
+            >
+              <c.icon className="h-7 w-7 text-brand-700 transition group-hover:scale-110" strokeWidth={1.5} />
+              <span className="text-sm font-medium text-ink">{c.name}</span>
+            </Link>
+          ))}
+          <Link
+            href="/products"
+            className="flex flex-col items-center justify-center gap-2 rounded-xl bg-brand-800 px-3 py-6 text-center text-white transition hover:bg-brand-700"
+          >
+            <ArrowRight className="h-6 w-6" />
+            <span className="text-sm font-semibold">전체 보기</span>
+          </Link>
         </div>
       </section>
 
@@ -237,9 +266,93 @@ export default function Home({ searchParams }: PageProps<"/">) {
   );
 }
 
+// 첫 화면 오른쪽: 서비스 화면을 보여 주는 그림 (예시 데이터)
+function HeroMock() {
+  return (
+    <div className="relative mx-auto w-full max-w-lg">
+      <div className="overflow-hidden rounded-2xl border border-line bg-white shadow-[0_30px_80px_-30px_rgb(42_22_67/0.45)]">
+        <div className="flex items-center gap-2 border-b border-line bg-surface px-4 py-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          <span className="ml-3 flex-1 truncate rounded-md bg-white px-3 py-1 text-[11px] text-muted ring-1 ring-line">
+            goguma-market / 중고거래
+          </span>
+        </div>
+        <div className="p-5">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-ink">우리 동네 최신 매물</p>
+            <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700">서비스 화면 예시</span>
+          </div>
+          <ul className="mt-4 divide-y divide-line">
+            {MOCK_ROWS.map((r) => {
+              const Icon = CATEGORIES[r.cat].icon;
+              return (
+                <li key={r.title} className="flex items-center gap-4 py-3.5">
+                  <span className="bg-grid grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-surface ring-1 ring-line">
+                    <Icon className="h-6 w-6 text-brand-700" strokeWidth={1.5} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-ink">{r.title}</p>
+                    <p className="mt-0.5 text-xs text-muted">{r.meta}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-bold ${r.price === "나눔" ? "text-accent-600" : "text-ink"}`}>{r.price}</p>
+                    <p className={`mt-1 text-[11px] font-semibold ${r.status === "예약중" ? "text-emerald-700" : "text-accent-600"}`}>
+                      {r.status}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+
+      {/* 떠 있는 작은 정보 카드 */}
+      <div className="absolute -bottom-6 -left-4 hidden items-center gap-3 rounded-xl border border-line bg-white px-4 py-3 shadow-xl sm:flex">
+        <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent-50 text-accent-600">
+          <BadgePercent className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs text-muted">거래 수수료</p>
+          <p className="font-bold text-ink">0원</p>
+        </div>
+      </div>
+      <div className="absolute -right-4 -top-5 hidden items-center gap-3 rounded-xl border border-line bg-white px-4 py-3 shadow-xl sm:flex">
+        <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand-50 text-brand-700">
+          <Clock className="h-5 w-5" />
+        </span>
+        <div>
+          <p className="text-xs text-muted">판매글 등록</p>
+          <p className="font-bold text-ink">1분이면 충분</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// R: 이번 주 인기 매물 4개
+async function PopularProducts() {
+  const user = await getCurrentUser();
+  const products = await getPopularProducts(4, user?.id);
+  if (products.length === 0) return <EmptyProducts />;
+  return (
+    <ProductGrid>
+      {products.map((p, i) => (
+        <div key={p.id} className="relative">
+          <span className="absolute -left-2 -top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-accent-500 text-sm font-bold text-white shadow">{i + 1}</span>
+          <ProductCard product={p} />
+        </div>
+      ))}
+    </ProductGrid>
+  );
+}
+
 // R: 최신 판매글 8개
 async function LatestProducts() {
-  const products = await getLatestProducts(8);
+  const user = await getCurrentUser();
+  const products = await getLatestProducts(8, user?.id);
   if (products.length === 0) return <EmptyProducts />;
   return (
     <ProductGrid>
@@ -250,41 +363,15 @@ async function LatestProducts() {
   );
 }
 
-// 매물 섹션 제목 (짧고 낮게 — 매물이 빨리 보이도록)
-function ListingHeader({
-  eyebrow,
-  title,
-  desc,
-  href,
-  link,
-}: {
-  eyebrow: string;
-  title: React.ReactNode;
-  desc?: string;
-  href: string;
-  link: string;
-}) {
-  return (
-    <div className="flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <Eyebrow>{eyebrow}</Eyebrow>
-        <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h2>
-        {desc && <p className="mt-1 text-sm text-muted">{desc}</p>}
-      </div>
-      <Link href={href} className="group inline-flex items-center gap-1 text-sm font-semibold text-brand-700">
-        {link} <span className="transition group-hover:translate-x-1">→</span>
-      </Link>
-    </div>
-  );
-}
-
-// 로그인 안 한 사람에게만: 근처 매물 기능 안내
-async function GuestNearbyCta() {
+// R: 내 동네 근처 매물 — 로그인 상태와 내 동네에 따라 다르게 보여요
+async function NearbySection() {
   const user = await getCurrentUser();
-  if (user) return null;
-  return (
-    <section>
-      <div className="mx-auto max-w-7xl px-4 pt-12 sm:px-6">
+
+  // 1) 로그인 안 함 → 로그인 안내
+  if (!user) {
+    return (
+      <section className="border-t border-line">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <div className="flex flex-col items-start justify-between gap-5 rounded-2xl border border-brand-100 bg-brand-50/60 p-7 sm:flex-row sm:items-center">
             <div className="flex items-start gap-4">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-brand-700 ring-1 ring-brand-100">
@@ -301,15 +388,10 @@ async function GuestNearbyCta() {
           </div>
         </div>
       </section>
-  );
-}
+    );
+  }
 
-// R: 내 동네 근처 매물 (로그인한 사람만)
-async function NearbySection() {
-  const user = await getCurrentUser();
-  if (!user) return null; // 로그인 안 한 사람은 아래쪽 GuestNearbyCta 가 안내해요
-
-  const nearby = await getNearbyProducts(user.region, { limit: 8 });
+  const nearby = await getNearbyProducts(user.region, { limit: 8, userId: user.id });
 
   // 2) 동네 정보가 없거나, 위치를 모르는 동네 → 안내만
   if (!nearby) {
@@ -329,20 +411,19 @@ async function NearbySection() {
 
   // 3) 근처 매물 보여 주기
   return (
-    <section>
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-14">
-        <ListingHeader
+    <section className="border-t border-line">
+      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+        <SectionHeader
           eyebrow="NEAR ME"
           title={
             <>
               <span className="text-brand-700">{nearby.center.name}</span> 근처 매물
             </>
           }
-          desc={`내 동네에서 ${NEAR_KM}km 안, 가까운 순서`}
-          href="/products?near=1"
-          link="근처 매물 전체 보기"
+          desc={`내 동네에서 ${NEAR_KM}km 안에 있는 매물을 가까운 순서로 모았어요.`}
+          action={{ href: "/products?tab=near", label: "근처 매물 전체 보기" }}
         />
-        <div className="mt-6">
+        <div className="mt-12">
           {nearby.items.length === 0 ? (
             <EmptyProducts message={`아직 ${nearby.center.name} 근처에 등록된 판매글이 없습니다.`} />
           ) : (
@@ -381,12 +462,21 @@ async function WelcomeBanner({ searchParams }: { searchParams: PageProps<"/">["s
 
 async function HeroButtons() {
   const user = await getCurrentUser();
-  // 로그인한 사람은 헤더에 '판매글 쓰기'가 있으니 버튼을 따로 안 보여 줘요
-  if (user) return null;
   return (
-    <Link href="/signup" className={`${btn.accent} shrink-0 !py-3`}>
-      무료로 시작하기 <ArrowRight className="h-4 w-4" />
-    </Link>
+    <div className="mt-9 flex flex-wrap items-center gap-3">
+      {user ? (
+        <Link href="/products/new" className={btn.primary}>
+          판매글 등록하기 <ArrowRight className="h-4 w-4" />
+        </Link>
+      ) : (
+        <Link href="/signup" className={btn.primary}>
+          무료로 시작하기 <ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
+      <Link href="/products" className={btn.outline}>
+        매물 둘러보기
+      </Link>
+    </div>
   );
 }
 

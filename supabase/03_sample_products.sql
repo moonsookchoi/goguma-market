@@ -3,7 +3,7 @@
 -- 지울 때: delete from public.goguma_products where description like '%[샘플]%';
 --          (사진 파일은 Storage 대시보드 > goguma_product_images 에서 지우거나, 사이트에서 글을 삭제하면 같이 지워져요)
 --
--- 샘플 사진: supabase/sample-images/*.svg 는 직접 그린 물건 일러스트예요.
+-- 샘플 사진: 지금은 Unsplash(무료 라이선스) 실제 사진을 webp로 바꿔 올려 둔 상태예요. (예전 일러스트 원본: supabase/sample-images/*.svg)
 --   브라우저에서 webp(1200px)로 바꿔 테스트 계정 폴더에 올리고, 각 판매글 images 칸에 경로를 넣었어요.
 
 insert into public.goguma_products (seller_id, title, description, price, category, region, status, created_at)

@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Clock, MapPin, MessageCircle, Pencil, ShieldCheck } from "lucide-react";
-import { getCurrentUser } from "@/lib/supabase/server";
-import { getProduct } from "@/app/products/data";
-import { STATUSES, getCategory, timeAgo, won, type Product } from "@/lib/products";
+import { BarChart3, Clock, Eye, Heart, MapPin, MessageCircle, Pencil, ShieldCheck } from "lucide-react";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
+import { getMarketPrices, getProduct } from "@/app/products/data";
+import { STATUSES, getCategory, priceStats, timeAgo, won, type Product } from "@/lib/products";
+import TempMeter from "@/components/TempMeter";
 import { ProductThumb, StatusBadge } from "@/components/ProductCard";
 import DeleteProductButton from "@/components/DeleteProductButton";
 import ProductGallery from "@/components/ProductGallery";
+import { BumpButton, ViewTracker, WishButton } from "@/components/ProductActions";
 import { btn } from "@/components/ui";
 import { changeStatus } from "../actions";
+import { startChat } from "@/app/chats/actions";
 
 // 브라우저 탭 제목을 판매글 제목으로
 export async function generateMetadata({ params }: PageProps<"/products/[id]">): Promise<Metadata> {
@@ -32,13 +35,28 @@ export default function ProductDetailPage({ params }: PageProps<"/products/[id]"
 async function ProductDetail({ params }: { params: PageProps<"/products/[id]">["params"] }) {
   const { id } = await params;
   const [product, user] = await Promise.all([getProduct(id), getCurrentUser()]);
+  const supabase = await createClient();
+
+  // 내가 찜했는지 · 이 글의 채팅 수 · 같은 카테고리 시세
+  const [wishRes, chatRes, market] = await Promise.all([
+    user
+      ? supabase.from("goguma_wishes").select("product_id").eq("user_id", user.id).eq("product_id", product.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase.from("goguma_chat_rooms").select("id", { count: "exact", head: true }).eq("product_id", product.id),
+    getMarketPrices({ category: product.category, near: product.region }),
+  ]);
+  const chatCount = chatRes.count ?? 0;
+  const stats = priceStats(market.prices);
+
   const isOwner = user?.id === product.seller_id;
   const category = getCategory(product.category);
   const sellerName = product.seller?.nickname ?? "알 수 없음";
+  const temp = Number(product.seller?.manner_temp ?? 36.5);
   const edited = new Date(product.updated_at).getTime() - new Date(product.created_at).getTime() > 60_000;
 
   return (
     <>
+      <ViewTracker id={product.id} />
       <nav aria-label="현재 위치" className="flex flex-wrap items-center gap-1.5 text-sm text-muted">
         <Link href="/" className="hover:text-ink">홈</Link>
         <span aria-hidden>/</span>
@@ -69,8 +87,24 @@ async function ProductDetail({ params }: { params: PageProps<"/products/[id]">["
           <p className={`mt-4 text-3xl font-bold tracking-tight ${product.price === 0 ? "text-accent-600" : "text-ink"}`}>
             {won(product.price)}
           </p>
+          <p className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
+            <span className="inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> 조회 {product.view_count}</span>
+            <span className="inline-flex items-center gap-1"><Heart className="h-3.5 w-3.5" /> 찜 {product.wish_count}</span>
+            <span className="inline-flex items-center gap-1"><MessageCircle className="h-3.5 w-3.5" /> 채팅 {chatCount}</span>
+          </p>
 
-          <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line text-sm">
+          {/* 동네 시세와 비교 */}
+          {stats && product.price > 0 && (
+            <p className="mt-3 flex items-center gap-1.5 rounded-lg bg-brand-50 px-3 py-2 text-xs text-brand-900">
+              <BarChart3 className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                {market.scope} {category.name} 평균 <b>{stats.avg.toLocaleString("ko-KR")}원</b> ·{" "}
+                {product.price <= stats.avg ? "평균보다 저렴해요 👍" : "평균보다 조금 비싸요"}
+              </span>
+            </p>
+          )}
+
+          <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line text-sm">
             <div className="bg-white p-4">
               <dt className="flex items-center gap-1.5 text-muted"><MapPin className="h-4 w-4" /> 거래 동네</dt>
               <dd className="mt-1 font-semibold text-ink">{product.region || "미정"}</dd>
@@ -84,19 +118,24 @@ async function ProductDetail({ params }: { params: PageProps<"/products/[id]">["
             </div>
           </dl>
 
-          {/* 판매자 */}
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-line p-4">
+          {/* 판매자 + 매너 온도 */}
+          <Link href={`/users/${product.seller_id}`} className="mt-4 flex items-center gap-3 rounded-xl border border-line p-4 transition hover:border-brand-200">
             <span className="grid h-11 w-11 place-items-center rounded-full bg-brand-100 font-bold text-brand-800">
               {sellerName.slice(0, 1)}
             </span>
             <div className="flex-1">
               <p className="font-semibold text-ink">{sellerName}</p>
-              <p className="text-sm text-muted">{product.seller?.region || "동네 미설정"}</p>
+              <p className="flex flex-wrap items-center gap-1 text-sm text-muted">
+                {product.seller?.region || "동네 미설정"}
+                {product.seller?.region_verified_at && (
+                  <span className="inline-flex items-center gap-0.5 text-xs font-medium text-emerald-700">
+                    <ShieldCheck className="h-3.5 w-3.5" /> 동네 인증
+                  </span>
+                )}
+              </p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
-              <ShieldCheck className="h-4 w-4" /> 회원 판매자
-            </span>
-          </div>
+            <TempMeter temp={temp} />
+          </Link>
 
           <div className="mt-auto pt-6">
             {isOwner ? (
@@ -119,7 +158,11 @@ async function ProductDetail({ params }: { params: PageProps<"/products/[id]">["
                     </button>
                   ))}
                 </form>
-                <div className="mt-4 flex justify-end gap-2">
+                <div className="mt-4 flex flex-wrap items-start justify-end gap-2">
+                  <BumpButton id={product.id} />
+                  <Link href="/chats" className={`${btn.outline} !px-4 !py-2 !text-sm`}>
+                    <MessageCircle className="h-4 w-4" /> 채팅 {chatCount}
+                  </Link>
                   <Link href={`/products/${product.id}/edit`} className={`${btn.outline} !px-4 !py-2 !text-sm`}>
                     <Pencil className="h-4 w-4" /> 수정
                   </Link>
@@ -127,9 +170,15 @@ async function ProductDetail({ params }: { params: PageProps<"/products/[id]">["
                 </div>
               </div>
             ) : (
-              <button disabled title="채팅은 다음 단계에서 제공됩니다" className={`${btn.primary} w-full !py-4 opacity-50`}>
-                <MessageCircle className="h-5 w-5" /> 채팅으로 거래하기 (준비 중)
-              </button>
+              <div className="flex gap-2">
+                <WishButton id={product.id} initialWished={Boolean(wishRes.data)} count={product.wish_count} loggedIn={Boolean(user)} />
+                <form action={startChat.bind(null, product.id)} className="flex-1">
+                  <button className={`${btn.primary} h-12 w-full`} disabled={product.status === "sold"}>
+                    <MessageCircle className="h-5 w-5" />
+                    {product.status === "sold" ? "거래가 완료된 물건이에요" : "채팅으로 거래하기"}
+                  </button>
+                </form>
+              </div>
             )}
           </div>
         </div>
@@ -155,7 +204,6 @@ function DetailSkeleton() {
         <div className="h-9 w-3/4 animate-pulse rounded bg-surface" />
         <div className="h-9 w-1/3 animate-pulse rounded bg-surface" />
         <div className="h-24 animate-pulse rounded-xl bg-surface" />
-        <div className="h-20 animate-pulse rounded-xl bg-surface" />
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { logout } from "@/app/auth/actions";
 
 const NAV = [
   { href: "/products", label: "중고거래" },
+  { href: "/chats", label: "채팅" },
   { href: "/#categories", label: "카테고리" },
   { href: "/#trust", label: "안전거래" },
   { href: "/#how", label: "이용방법" },

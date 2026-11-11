@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Images, MapPin } from "lucide-react";
+import { Eye, Heart, Images, MapPin } from "lucide-react";
 import { getCategory, imageUrl, STATUSES, timeAgo, won, type Product } from "@/lib/products";
 import { formatKm } from "@/lib/regions";
 import { btn } from "@/components/ui";
@@ -39,6 +39,8 @@ export function StatusBadge({ status }: { status: Product["status"] }) {
 export default function ProductCard({ product, distanceKm }: { product: Product; distanceKm?: number }) {
   const sold = product.status === "sold";
   const category = getCategory(product.category);
+  // 끌어올린 글인지 (처음 올린 시간보다 1분 이상 뒤에 끌어올렸으면)
+  const bumped = new Date(product.bumped_at).getTime() - new Date(product.created_at).getTime() > 60_000;
   return (
     <Link
       href={`/products/${product.id}`}
@@ -88,8 +90,22 @@ export default function ProductCard({ product, distanceKm }: { product: Product;
               <span className="font-semibold text-brand-700">{formatKm(distanceKm)}</span> ·{" "}
             </>
           )}
-          {timeAgo(product.created_at)}
+          {bumped ? <span className="font-medium text-accent-600">끌올 {timeAgo(product.bumped_at)}</span> : timeAgo(product.created_at)}
         </p>
+        {(product.wish_count > 0 || product.view_count > 0) && (
+          <p className="mt-1.5 flex items-center gap-2.5 text-[11px] text-muted">
+            {product.wish_count > 0 && (
+              <span className="inline-flex items-center gap-0.5">
+                <Heart className="h-3 w-3" /> {product.wish_count}
+              </span>
+            )}
+            {product.view_count > 0 && (
+              <span className="inline-flex items-center gap-0.5">
+                <Eye className="h-3 w-3" /> {product.view_count}
+              </span>
+            )}
+          </p>
+        )}
       </div>
     </Link>
   );

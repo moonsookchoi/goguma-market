@@ -144,3 +144,77 @@ export async function deleteProduct(id: number) {
   revalidatePath("/");
   redirect("/products?deleted=1");
 }
+
+// ───────────── 찜 · 끌어올리기 · 신고 · 차단 ─────────────
+
+// 찜하기 / 찜 취소 (찜 수는 DB 트리거가 자동으로 세요)
+export async function toggleWish(productId: number): Promise<{ wished: boolean } | { error: string }> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getClaims();
+  const userId = auth?.claims?.sub;
+  if (!userId) return { error: "login" };
+
+  const { data: existing } = await supabase
+    .from("goguma_wishes")
+    .select("product_id")
+    .eq("user_id", userId)
+    .eq("product_id", productId)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from("goguma_wishes").delete().eq("user_id", userId).eq("product_id", productId);
+  } else {
+    await supabase.from("goguma_wishes").insert({ user_id: userId, product_id: productId });
+  }
+  revalidatePath(`/products/${productId}`);
+  return { wished: !existing };
+}
+
+// 끌어올리기: 24시간에 한 번, 내 글을 목록 맨 위로
+export async function bumpProduct(id: number): Promise<{ error?: string; ok?: boolean }> {
+  const { supabase, userId } = await requireUserId();
+  const { data: p } = await supabase.from("goguma_products").select("bumped_at, seller_id").eq("id", id).maybeSingle();
+  if (!p || p.seller_id !== userId) return { error: "내 글만 끌어올릴 수 있어요." };
+
+  const hoursLeft = 24 - (Date.now() - new Date(p.bumped_at).getTime()) / 3_600_000;
+  if (hoursLeft > 0) return { error: `${Math.ceil(hoursLeft)}시간 뒤에 다시 끌어올릴 수 있어요.` };
+
+  await supabase.from("goguma_products").update({ bumped_at: new Date().toISOString() }).eq("id", id).eq("seller_id", userId);
+  revalidatePath("/");
+  revalidatePath("/products");
+  revalidatePath(`/products/${id}`);
+  return { ok: true };
+}
+
+const REPORT_REASONS = ["spam", "fraud", "prohibited", "abusive", "etc"] as const;
+
+// 신고하기
+export async function reportProduct(productId: number, _prev: { done?: boolean; error?: string }, formData: FormData): Promise<{ done?: boolean; error?: string }> {
+  const { supabase, userId } = await requireUserId();
+  const reason = String(formData.get("reason") ?? "");
+  const detail = String(formData.get("detail") ?? "").trim().slice(0, 300);
+  if (!REPORT_REASONS.includes(reason as (typeof REPORT_REASONS)[number])) return { error: "신고 이유를 골라 주세요." };
+
+  const { error } = await supabase.from("goguma_reports").insert({ product_id: productId, reporter_id: userId, reason, detail });
+  if (error) {
+    if (error.code === "23505") return { done: true }; // 이미 신고함
+    console.error("reportProduct", error);
+    return { error: "신고하지 못했어요. 잠시 후 다시 시도해 주세요." };
+  }
+  return { done: true };
+}
+
+// 차단하기 / 차단 풀기
+export async function blockUser(targetId: string) {
+  const { supabase, userId } = await requireUserId();
+  if (targetId === userId) return;
+  await supabase.from("goguma_blocks").insert({ blocker_id: userId, blocked_id: targetId });
+  revalidatePath("/", "layout");
+  redirect("/products?blocked=1");
+}
+
+export async function unblockUser(targetId: string) {
+  const { supabase, userId } = await requireUserId();
+  await supabase.from("goguma_blocks").delete().eq("blocker_id", userId).eq("blocked_id", targetId);
+  revalidatePath("/me");
+}

@@ -50,12 +50,38 @@ export type Product = {
   created_at: string;
   updated_at: string;
   images: string[]; // Storage 안의 사진 경로들 (첫 번째 = 대표 사진)
-  seller: { nickname: string; region: string } | null;
+  view_count: number; // 조회수
+  wish_count: number; // 찜 수
+  bumped_at: string; // 끌어올린 시간 (목록 정렬 기준)
+  hidden: boolean; // 관리자가 숨긴 글
+  seller: { nickname: string; region: string; manner_temp: number; region_verified_at: string | null } | null;
 };
 
-// 목록·상세에서 쓰는 select 문 (판매자 닉네임까지 한 번에 가져오기)
+// 목록·상세에서 쓰는 select 문 (판매자 닉네임·매너 온도까지 한 번에 가져오기)
 export const PRODUCT_SELECT =
-  "id, seller_id, title, description, price, category, region, status, created_at, updated_at, images, seller:goguma_profiles(nickname, region)";
+  "id, seller_id, title, description, price, category, region, status, created_at, updated_at, images, view_count, wish_count, bumped_at, hidden, seller:goguma_profiles(nickname, region, manner_temp, region_verified_at)";
+
+// 검색어를 Supabase 필터에 안전하게 넣기 (쉼표·괄호 같은 특수문자 제거)
+export function cleanQuery(q: unknown) {
+  return typeof q === "string" ? q.replace(/[,()%*\\'"]/g, " ").trim().slice(0, 30) : "";
+}
+
+// 시세 계산: 나눔(0원)은 빼고 평균·가운데 값·최저·최고
+export function priceStats(prices: number[]) {
+  const list = prices.filter((p) => p > 0).sort((a, b) => a - b);
+  if (list.length === 0) return null;
+  const avg = Math.round(list.reduce((s, p) => s + p, 0) / list.length);
+  const mid = list.length % 2 ? list[(list.length - 1) / 2] : Math.round((list[list.length / 2 - 1] + list[list.length / 2]) / 2);
+  return { count: list.length, avg, median: mid, min: list[0], max: list[list.length - 1] };
+}
+
+// 매너 온도 색 (낮으면 파랑, 높으면 주황)
+export function tempColor(t: number) {
+  if (t >= 50) return "text-accent-600";
+  if (t >= 40) return "text-emerald-600";
+  if (t >= 36) return "text-brand-700";
+  return "text-sky-600";
+}
 
 // ── 사진 ──
 export const IMAGE_BUCKET = "goguma_product_images";
