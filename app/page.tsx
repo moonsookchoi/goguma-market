@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import {
-  ArrowRight, BadgePercent, CircleCheck, Clock, Lock, MapPin, MessageCircle,
+  ArrowRight, BadgePercent, CircleCheck, Clock, Lock, MapPin, MessageCircle, Navigation,
   PenLine, Search, ShieldCheck, Store, Users, Zap,
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/supabase/server";
-import { getLatestProducts } from "@/app/products/data";
+import { getLatestProducts, getNearbyProducts } from "@/app/products/data";
 import { CATEGORIES } from "@/lib/products";
+import { NEAR_KM } from "@/lib/regions";
 import ProductCard, { EmptyProducts, ProductGrid, ProductGridSkeleton } from "@/components/ProductCard";
 import { btn, Eyebrow, SectionHeader } from "@/components/ui";
 
@@ -123,6 +124,11 @@ export default function Home({ searchParams }: PageProps<"/">) {
           ))}
         </div>
       </section>
+
+      {/* ───────── 우리 동네 근처 매물 (로그인 + 동네 정보 필요) ───────── */}
+      <Suspense fallback={null}>
+        <NearbySection />
+      </Suspense>
 
       {/* ───────── 최신 매물 (DB) ───────── */}
       <section className="border-y border-line bg-surface">
@@ -321,6 +327,82 @@ async function LatestProducts() {
         <ProductCard key={p.id} product={p} />
       ))}
     </ProductGrid>
+  );
+}
+
+// R: 내 동네 근처 매물 — 로그인 상태와 내 동네에 따라 다르게 보여요
+async function NearbySection() {
+  const user = await getCurrentUser();
+
+  // 1) 로그인 안 함 → 로그인 안내
+  if (!user) {
+    return (
+      <section className="border-t border-line">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+          <div className="flex flex-col items-start justify-between gap-5 rounded-2xl border border-brand-100 bg-brand-50/60 p-7 sm:flex-row sm:items-center">
+            <div className="flex items-start gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-brand-700 ring-1 ring-brand-100">
+                <Navigation className="h-6 w-6" strokeWidth={1.75} />
+              </span>
+              <div>
+                <p className="text-lg font-bold text-ink">우리 동네 근처 매물만 모아 보세요</p>
+                <p className="mt-1 text-muted">로그인하면 내 동네에서 {NEAR_KM}km 안의 매물을 가까운 순서로 보여 드려요.</p>
+              </div>
+            </div>
+            <Link href="/login" className={btn.primary}>
+              로그인하고 보기
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const nearby = await getNearbyProducts(user.region, { limit: 8 });
+
+  // 2) 동네 정보가 없거나, 위치를 모르는 동네 → 안내만
+  if (!nearby) {
+    return (
+      <section className="border-t border-line">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <p className="flex items-center gap-2 rounded-xl border border-line bg-surface px-5 py-4 text-sm text-body">
+            <Navigation className="h-4 w-4 text-muted" />
+            {user.region
+              ? `'${user.region}'은(는) 아직 위치 정보가 없는 동네라 근처 매물을 계산할 수 없어요.`
+              : "회원 정보에 동네가 없어서 근처 매물을 보여 드릴 수 없어요."}
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // 3) 근처 매물 보여 주기
+  return (
+    <section className="border-t border-line">
+      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+        <SectionHeader
+          eyebrow="NEAR ME"
+          title={
+            <>
+              <span className="text-brand-700">{nearby.center.name}</span> 근처 매물
+            </>
+          }
+          desc={`내 동네에서 ${NEAR_KM}km 안에 있는 매물을 가까운 순서로 모았어요.`}
+          action={{ href: "/products?near=1", label: "근처 매물 전체 보기" }}
+        />
+        <div className="mt-12">
+          {nearby.items.length === 0 ? (
+            <EmptyProducts message={`아직 ${nearby.center.name} 근처에 등록된 판매글이 없습니다.`} />
+          ) : (
+            <ProductGrid>
+              {nearby.items.map(({ product, km }) => (
+                <ProductCard key={product.id} product={product} distanceKm={km} />
+              ))}
+            </ProductGrid>
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 

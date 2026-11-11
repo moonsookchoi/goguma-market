@@ -5,6 +5,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import type { ProductFormState } from "@/app/products/actions";
 import ImageUploader from "@/components/ImageUploader";
+import RegionDatalist, { REGION_LIST_ID } from "@/components/RegionDatalist";
 import { CATEGORIES } from "@/lib/products";
 import { btn, ErrorBox, inputClass, Spinner } from "@/components/ui";
 
@@ -45,6 +46,7 @@ export default function ProductForm({ action, initial, userId, submitLabel, canc
 
   return (
     <form action={formAction}>
+      <RegionDatalist />
       <Section title="상품 사진" desc="여러 장을 올릴 수 있어요. 밝고 선명한 사진일수록 거래가 빨라져요.">
         <ImageUploader userId={userId} initial={initial.images} />
       </Section>
@@ -127,6 +129,8 @@ export default function ProductForm({ action, initial, userId, submitLabel, canc
             </span>
             <input
               name="region"
+              list={REGION_LIST_ID}
+              autoComplete="off"
               maxLength={20}
               defaultValue={f?.region ?? initial.region}
               placeholder="예) 망원동"

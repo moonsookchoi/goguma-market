@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Images, MapPin } from "lucide-react";
 import { getCategory, imageUrl, STATUSES, timeAgo, won, type Product } from "@/lib/products";
+import { formatKm } from "@/lib/regions";
 import { btn } from "@/components/ui";
 
 // 사진이 없는 동안: 옅은 회색 타일 + 카테고리 선 아이콘을 대표 이미지로 보여 줘요
@@ -34,7 +35,8 @@ export function StatusBadge({ status }: { status: Product["status"] }) {
   return <span className={`inline-flex rounded-md px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${s.badge}`}>{s.label}</span>;
 }
 
-export default function ProductCard({ product }: { product: Product }) {
+// distanceKm: '내 근처' 화면에서 내 동네와의 거리를 같이 보여 줄 때만 넣어요
+export default function ProductCard({ product, distanceKm }: { product: Product; distanceKm?: number }) {
   const sold = product.status === "sold";
   const category = getCategory(product.category);
   return (
@@ -74,11 +76,16 @@ export default function ProductCard({ product }: { product: Product }) {
         <p className={`mt-2 text-lg font-bold ${sold ? "text-muted line-through" : "text-ink"}`}>
           {product.price === 0 ? <span className="text-accent-600">나눔</span> : won(product.price)}
         </p>
-        <p className="mt-auto flex items-center gap-1 pt-3 text-xs text-muted">
+        <p className="mt-auto flex flex-wrap items-center gap-1 pt-3 text-xs text-muted">
           {product.region && (
             <>
               <MapPin className="h-3.5 w-3.5" />
               {product.region} ·{" "}
+            </>
+          )}
+          {distanceKm !== undefined && (
+            <>
+              <span className="font-semibold text-brand-700">{formatKm(distanceKm)}</span> ·{" "}
             </>
           )}
           {timeAgo(product.created_at)}

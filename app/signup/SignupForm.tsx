@@ -6,6 +6,7 @@ import { signup, type AuthState } from "@/app/auth/actions";
 import { Mail } from "lucide-react";
 import { ErrorBox, Field, SubmitButton } from "@/components/AuthShell";
 import { btn } from "@/components/ui";
+import RegionDatalist, { REGION_LIST_ID } from "@/components/RegionDatalist";
 
 export default function SignupForm() {
   const [state, formAction, pending] = useActionState<AuthState, FormData>(signup, {});
@@ -32,6 +33,7 @@ export default function SignupForm() {
 
   return (
     <form action={formAction} className="space-y-4">
+      <RegionDatalist />
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
           label="닉네임"
@@ -45,8 +47,10 @@ export default function SignupForm() {
         />
         <Field
           label="우리 동네"
-          hint="선택"
+          hint="근처 매물 추천에 사용"
           name="region"
+          list={REGION_LIST_ID}
+          autoComplete="off"
           placeholder="예) 망원동"
           maxLength={20}
           defaultValue={state.fields?.region}
